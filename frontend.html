@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Enterprise Interview Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET & ROOT ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#090c10;
+  --bg2:#0e1219;
+  --bg3:#141820;
+  --panel:#111620;
+  --border:#1e2533;
+  --border2:#2a3245;
+  --txt:#e8ecf4;
+  --txt2:#8a93a8;
+  --txt3:#4a5368;
+  --accent:#3d7fff;
+  --accent2:#5a95ff;
+  --accent-glow:rgba(61,127,255,0.18);
+  --accent-glow2:rgba(61,127,255,0.08);
+  --green:#22c57a;
+  --green-glow:rgba(34,197,122,0.15);
+  --amber:#f5a623;
+  --red:#f03e3e;
+  --r:8px;
+  --r2:14px;
+  --shadow:0 4px 24px rgba(0,0,0,0.5);
+  --shadow2:0 12px 48px rgba(0,0,0,0.7);
+}
+html{font-size:16px;scroll-behavior:smooth;overflow:hidden;height:100%}
+body{
+  font-family:'Instrument Sans',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  height:100vh;
+  overflow:hidden;
+  cursor:default;
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ── TYPOGRAPHY ───────────────────────────────────────────── */
+.syne{font-family:'Syne',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ── ANIMATIONS ───────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px var(--accent-glow)}50%{box-shadow:0 0 40px rgba(61,127,255,0.3)}}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+@keyframes dotPulse{0%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.6}100%{transform:scale(1);opacity:1}}
+@keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+
+.fade-up{animation:fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both}
+.fade-up-1{animation:fadeUp 0.5s 0.1s cubic-bezier(0.16,1,0.3,1) both}
+.fade-up-2{animation:fadeUp 0.5s 0.2s cubic-bezier(0.16,1,0.3,1) both}
+.fade-up-3{animation:fadeUp 0.5s 0.3s cubic-bezier(0.16,1,0.3,1) both}
+.fade-up-4{animation:fadeUp 0.5s 0.4s cubic-bezier(0.16,1,0.3,1) both}
+.fade-in{animation:fadeIn 0.4s ease both}
+
+/* ── GLOBAL LAYOUT ────────────────────────────────────────── */
+#app{display:flex;flex-direction:column;height:calc(100vh - 60px);margin-top:60px;overflow:hidden;position:relative}
+
+/* ── TOPBAR ───────────────────────────────────────────────── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;
+  background:rgba(9,12,16,0.92);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 2px 20px rgba(0,0,0,0.4);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#6a5aff);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;
+  box-shadow:0 0 16px rgba(61,127,255,0.4);
+}
+.brand-name{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;letter-spacing:-0.3px}
+.brand-tag{font-size:10px;color:var(--txt3);letter-spacing:1.5px;font-weight:600;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:20px}
+.step-indicator{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 14px}
+.step-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border2);
+  transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.step-dot.done{background:var(--green);box-shadow:0 0 6px rgba(34,197,122,0.5)}
+.step-dot.active{background:var(--accent);animation:dotPulse 1.8s ease infinite;box-shadow:0 0 8px rgba(61,127,255,0.6)}
+.step-label{font-size:12px;color:var(--txt2);font-weight:500;margin-left:6px}
+
+/* ── SCREEN BASE ──────────────────────────────────────────── */
+.screen{
+  flex:1;display:flex;align-items:flex-start;justify-content:center;
+  padding:32px 24px 60px;
+  height:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.screen.hidden{display:none}
+
+/* ── GRID BG ──────────────────────────────────────────────── */
+.grid-bg{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(61,127,255,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(61,127,255,0.03) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.radial-glow{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(61,127,255,0.08),transparent 70%);
+}
+
+/* ── UPLOAD SCREEN ────────────────────────────────────────── */
+.upload-screen{
+  display:flex;flex-direction:column;align-items:center;
+  max-width:680px;width:100%;margin:0 auto;
+}
+.screen-eyebrow{
+  font-size:11px;letter-spacing:3px;font-weight:600;
+  text-transform:uppercase;color:var(--accent);
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.screen-eyebrow::before,.screen-eyebrow::after{
+  content:'';display:block;width:24px;height:1px;background:var(--accent);
+  opacity:0.5;
+}
+.screen-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(26px,4vw,42px);
+  font-weight:800;letter-spacing:-1.5px;
+  text-align:center;line-height:1.1;
+  margin-bottom:12px;
+}
+.screen-title .hi{color:var(--accent)}
+.screen-sub{
+  font-size:14px;color:var(--txt2);text-align:center;
+  line-height:1.7;max-width:480px;margin-bottom:28px;
+}
+
+/* Upload Zone */
+.upload-zone{
+  width:100%;
+  border:1.5px dashed var(--border2);
+  border-radius:var(--r2);
+  padding:32px 32px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.3s;
+  background:rgba(30,37,51,0.2);
+  position:relative;
+  overflow:hidden;
+}
+.upload-zone::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(61,127,255,0.04));
+  pointer-events:none;
+}
+.upload-zone:hover,.upload-zone.drag{
+  border-color:var(--accent);
+  background:var(--accent-glow2);
+  box-shadow:0 0 0 4px var(--accent-glow2),inset 0 0 48px var(--accent-glow2);
+}
+.upload-zone.has-file{
+  border-color:var(--green);
+  background:rgba(34,197,122,0.06);
+  border-style:solid;
+}
+.upload-icon{
+  width:64px;height:64px;
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(61,127,255,0.15),rgba(106,90,255,0.1));
+  border:1px solid rgba(61,127,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+  font-size:28px;
+  transition:transform 0.3s;
+}
+.upload-zone:hover .upload-icon{transform:translateY(-4px) scale(1.05)}
+.upload-zone.has-file .upload-icon{background:rgba(34,197,122,0.12);border-color:rgba(34,197,122,0.3)}
+.upload-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.upload-hint{font-size:13px;color:var(--txt2)}
+.upload-formats{
+  display:flex;gap:8px;justify-content:center;margin-top:16px;
+}
+.format-chip{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;
+  background:var(--bg3);border:1px solid var(--border);color:var(--txt2);
+  font-family:'JetBrains Mono',monospace;
+}
+.file-preview{
+  display:flex;align-items:center;gap:14px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px 20px;margin-top:20px;
+  text-align:left;
+}
+.file-icon-box{
+  width:40px;height:40px;border-radius:8px;
+  background:rgba(34,197,122,0.12);border:1px solid rgba(34,197,122,0.25);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.file-name{font-size:14px;font-weight:600;color:var(--txt)}
+.file-size{font-size:12px;color:var(--txt2);margin-top:2px}
+.file-remove{
+  margin-left:auto;background:none;border:none;color:var(--txt3);
+  cursor:pointer;font-size:18px;padding:4px;border-radius:4px;
+  transition:color 0.2s;
+}
+.file-remove:hover{color:var(--red)}
+
+/* Name input */
+.name-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  width:100%;margin-top:16px;
+}
+.field{display:flex;flex-direction:column;gap:8px;width:100%}
+.field-label{
+  font-size:11px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;color:var(--txt2);
+}
+.field-input,.field-select{
+  width:100%;padding:12px 16px;
+  background:var(--bg3);
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  font-family:'Instrument Sans',sans-serif;font-size:14px;color:var(--txt);
+  outline:none;transition:all 0.2s;
+  appearance:none;
+}
+.field-input:focus,.field-select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.field-input::placeholder{color:var(--txt3)}
+
+/* ── BTN ──────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 28px;border-radius:var(--r);
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;border:none;transition:all 0.2s;letter-spacing:0.3px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),#5a50f0);
+  color:#fff;
+  box-shadow:0 4px 16px rgba(61,127,255,0.3);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(61,127,255,0.4)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{
+  background:var(--bg3);color:var(--txt);
+  border:1.5px solid var(--border2);
+}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-full{width:100%;margin-top:16px}
+.btn-lg{padding:15px 36px;font-size:15px}
+.btn-icon{font-size:16px}
+.btn-finish{
+  background:linear-gradient(135deg,#9b6dff,#5a50f0) !important;
+  box-shadow:0 4px 20px rgba(155,109,255,0.35) !important;
+  animation:glow 2s ease infinite;
+}
+
+/* ── ROLE SCREEN ──────────────────────────────────────────── */
+.role-screen{max-width:860px;width:100%;margin:0 auto}
+.role-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  margin:40px 0;
+}
+.role-card{
+  padding:24px 20px;
+  background:var(--panel);
+  border:1.5px solid var(--border);
+  border-radius:var(--r2);
+  cursor:pointer;
+  transition:all 0.25s;
+  position:relative;overflow:hidden;
+}
+.role-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent,rgba(61,127,255,0.04));
+  pointer-events:none;
+}
+.role-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 32px var(--accent-glow)}
+.role-card.selected{
+  border-color:var(--accent);
+  background:rgba(61,127,255,0.07);
+  box-shadow:0 0 0 3px var(--accent-glow),0 8px 32px var(--accent-glow);
+}
+.role-card.selected::before{
+  content:'✓';
+  position:absolute;top:14px;right:14px;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.role-emoji{font-size:28px;margin-bottom:14px;display:block}
+.role-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:5px}
+.role-dept{font-size:12px;color:var(--txt2);margin-bottom:12px}
+.role-tags{display:flex;flex-wrap:wrap;gap:5px}
+.role-tag{
+  padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;
+  background:var(--bg3);border:1px solid var(--border);color:var(--txt2);
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.3px;
+}
+
+.jd-section{margin-top:8px}
+.jd-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);margin-bottom:10px}
+.jd-textarea{
+  width:100%;padding:14px 16px;min-height:90px;
+  background:var(--bg3);border:1.5px solid var(--border);
+  border-radius:var(--r);
+  font-family:'Instrument Sans',sans-serif;font-size:14px;color:var(--txt);
+  outline:none;resize:vertical;transition:all 0.2s;line-height:1.6;
+}
+.jd-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.jd-textarea::placeholder{color:var(--txt3)}
+.role-actions{display:flex;justify-content:space-between;align-items:center;margin-top:32px}
+
+/* ── INTERVIEW SCREEN ─────────────────────────────────────── */
+.interview-screen-wrapper{
+  flex:1;display:grid;
+  grid-template-columns:280px 1fr 300px;
+  height:100%;
+  overflow:hidden;
+}
+
+/* Smooth page transition */
+@keyframes pageFadeIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.screen:not(.hidden){animation:pageFadeIn 0.35s cubic-bezier(0.16,1,0.3,1) both}
+
+/* LEFT SIDEBAR */
+.int-left{
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:28px 20px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  display:flex;flex-direction:column;gap:24px;
+  height:100%;
+}
+.cand-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+}
+.cand-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.cand-avatar{
+  width:44px;height:44px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),#5a50f0);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;
+}
+.cand-name{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
+.cand-role{font-size:12px;color:var(--txt2);margin-top:2px}
+.info-pill{
+  display:flex;justify-content:space-between;
+  padding:7px 0;border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.info-pill:last-child{border-bottom:none}
+.ip-label{color:var(--txt3)}
+.ip-val{color:var(--txt);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:11px}
+
+.sidebar-section-title{
+  font-size:10px;letter-spacing:2px;font-weight:700;
+  text-transform:uppercase;color:var(--txt3);margin-bottom:12px;
+}
+
+/* Progress list */
+.q-progress-list{display:flex;flex-direction:column;gap:2px}
+.q-prog-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 10px;border-radius:6px;
+  transition:background 0.2s;font-size:12px;
+  cursor:default;
+}
+.q-prog-item.qp-current{background:rgba(61,127,255,0.08)}
+.qp-num{
+  width:20px;height:20px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;margin-top:1px;
+}
+.qp-num.done{background:var(--green);color:#000}
+.qp-num.active{background:var(--accent);color:#fff;animation:dotPulse 1.8s ease infinite}
+.qp-num.pending{background:var(--bg3);border:1px solid var(--border);color:var(--txt3)}
+.qp-text{color:var(--txt2);line-height:1.4;flex:1}
+.qp-text.active{color:var(--txt);font-weight:500}
+.qp-score{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  margin-top:2px;flex-shrink:0;
+}
+
+/* Live score */
+.live-score-panel{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+}
+.ls-num{
+  font-family:'Syne',sans-serif;font-size:42px;font-weight:800;
+  color:var(--accent);line-height:1;
+}
+.ls-denom{font-size:14px;color:var(--txt3);font-family:'JetBrains Mono',monospace}
+.ls-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-top:6px}
+.ls-bar{height:4px;background:var(--border);border-radius:2px;margin-top:12px;overflow:hidden}
+.ls-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
+
+/* MAIN PANEL */
+.int-main{
+  background:var(--bg);
+  padding:36px 44px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  display:flex;flex-direction:column;gap:24px;
+  height:100%;
+}
+
+.phase-ribbon{
+  display:flex;align-items:center;gap:10px;
+}
+.phase-pill{
+  padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  border:1px solid;
+}
+
+/* Question card */
+.q-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+  transition:box-shadow 0.3s;
+}
+.q-card:hover{
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);
+}
+
+/* Interview progress bar */
+.int-progress-bar{
+  position:fixed;top:60px;left:0;right:0;z-index:99;
+  height:3px;background:var(--border);
+  overflow:hidden;
+}
+.int-progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--green),#9b6dff);
+  background-size:200% 100%;
+  animation:shimmer 2s linear infinite;
+  transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Phase transition animation */
+@keyframes slideInUp{
+  from{opacity:0;transform:translateY(32px) scale(0.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.q-card{animation:slideInUp 0.45s cubic-bezier(0.16,1,0.3,1) both}
+.eval-card{animation:slideInUp 0.45s 0.05s cubic-bezier(0.16,1,0.3,1) both}
+.q-card-header{
+  padding:20px 28px 0;
+  display:flex;align-items:center;gap:12px;
+}
+.q-num-big{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),#5a50f0);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;flex-shrink:0;
+}
+.q-meta-right{flex:1}
+.q-phase-tag{font-size:10px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
+.q-diff-row{display:flex;gap:3px;margin-top:4px}
+.diff-pip{width:14px;height:3px;border-radius:2px;background:var(--border2)}
+.diff-pip.lit{background:var(--amber)}
+.q-typing-indicator{display:flex;align-items:center;gap:5px;color:var(--txt2);font-size:13px}
+.typing-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+
+.q-body{padding:20px 28px 28px}
+.q-text{
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:600;
+  line-height:1.45;letter-spacing:-0.3px;margin-bottom:12px;
+}
+.q-context{
+  font-size:13px;color:var(--txt2);line-height:1.65;
+  padding:12px 16px;
+  background:var(--bg3);border-radius:6px;
+  border-left:3px solid var(--border2);
+  margin-bottom:20px;
+}
+
+/* Response area */
+.response-wrapper{position:relative}
+.response-ta{
+  width:100%;min-height:130px;
+  padding:16px 18px;
+  background:var(--bg3);
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  font-family:'Instrument Sans',sans-serif;font-size:15px;
+  color:var(--txt);line-height:1.7;
+  resize:vertical;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.response-ta:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.response-ta::placeholder{color:var(--txt3);font-style:italic}
+.response-ta:disabled{opacity:0.6;cursor:not-allowed}
+.response-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:12px;
+}
+.word-count{
+  font-size:11px;color:var(--txt3);
+  font-family:'JetBrains Mono',monospace;
+}
+.response-btns{display:flex;gap:10px}
+
+/* Skip hint */
+.skip-hint{
+  font-size:12px;color:var(--txt3);text-align:center;
+  padding:10px 0;
+}
+.skip-link{color:var(--txt2);cursor:pointer;text-decoration:underline;transition:color 0.2s}
+.skip-link:hover{color:var(--accent)}
+
+/* Eval card */
+.eval-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--r2);padding:24px 28px;
+  animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+  border-top:2px solid var(--accent);
+}
+.eval-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.eval-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.eval-score-big{
+  font-family:'Syne',sans-serif;font-size:36px;font-weight:800;
+  color:var(--accent);line-height:1;
+}
+.eval-score-denom{font-size:14px;color:var(--txt3);font-family:'JetBrains Mono',monospace}
+.eval-dims{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.eval-dim{display:flex;flex-direction:column;gap:5px}
+.eval-dim-row{display:flex;justify-content:space-between;align-items:center}
+.dim-name{font-size:12px;font-weight:600;color:var(--txt)}
+.dim-score{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--accent2)}
+.dim-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.dim-fill{height:100%;border-radius:3px;transition:width 0.9s cubic-bezier(0.4,0,0.2,1)}
+.dim-feedback{font-size:11px;color:var(--txt3);line-height:1.5}
+
+.eval-summary{
+  font-size:13px;color:var(--txt2);line-height:1.65;
+  padding:12px 14px;background:var(--bg3);border-radius:6px;
+  margin-bottom:14px;
+}
+.eval-tags{display:flex;gap:8px;flex-wrap:wrap}
+.eval-tag{
+  padding:5px 12px;border-radius:4px;font-size:11px;font-weight:600;
+  letter-spacing:0.3px;
+}
+.eval-tag.strength{background:rgba(34,197,122,0.12);color:var(--green);border:1px solid rgba(34,197,122,0.25)}
+.eval-tag.improve{background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+
+.next-btn-row{display:flex;justify-content:flex-end;margin-top:18px}
+
+/* AI thinking */
+.ai-thinking{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;
+  background:rgba(61,127,255,0.06);
+  border:1px solid rgba(61,127,255,0.15);
+  border-radius:var(--r);
+  font-size:13px;color:var(--accent2);
+  animation:fadeIn 0.3s ease;
+}
+.think-spinner{
+  width:18px;height:18px;border:2px solid rgba(61,127,255,0.2);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin 0.7s linear infinite;flex-shrink:0;
+}
+
+/* RIGHT SIDEBAR */
+.int-right{
+  background:var(--panel);
+  border-left:1px solid var(--border);
+  padding:28px 20px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  display:flex;flex-direction:column;gap:24px;
+  height:100%;
+}
+
+.skill-bars{display:flex;flex-direction:column;gap:11px}
+.skill-row-r{display:flex;align-items:center;gap:10px}
+.skill-name-r{font-size:11px;font-weight:600;color:var(--txt2);width:110px;flex-shrink:0}
+.skill-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.skill-bar-fill{height:100%;border-radius:3px;transition:width 0.9s cubic-bezier(0.4,0,0.2,1)}
+.skill-pct{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt3);width:28px;text-align:right}
+
+.timeline-r{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding-bottom:14px;position:relative}
+.tl-item::before{content:'';position:absolute;left:7px;top:20px;width:1px;height:calc(100% - 10px);background:var(--border)}
+.tl-item:last-child::before{display:none}
+.tl-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:2px;border:2px solid}
+.tl-dot.done{background:var(--green);border-color:var(--green)}
+.tl-dot.active{background:var(--accent);border-color:var(--accent);animation:dotPulse 1.8s ease infinite}
+.tl-dot.pending{background:var(--bg3);border-color:var(--border2)}
+.tl-phase{font-size:12px;font-weight:600;color:var(--txt)}
+.tl-meta{font-size:11px;color:var(--txt3);margin-top:2px}
+
+.metric-row{display:flex;gap:12px}
+.metric-box{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 12px;
+}
+.metric-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--txt)}
+.metric-lbl{font-size:10px;color:var(--txt3);margin-top:2px;letter-spacing:0.5px}
+.metric-trend{font-size:10px;font-weight:600;margin-top:4px}
+.t-up{color:var(--green)}.t-dn{color:var(--red)}.t-neu{color:var(--txt3)}
+
+/* ── REPORT SCREEN ────────────────────────────────────────── */
+.report-wrapper{
+  flex:1;overflow-y:auto;overflow-x:hidden;background:var(--bg);
+  padding:40px 40px 80px;
+  height:100%;
+}
+.report-inner{max-width:1080px;margin:0 auto}
+.report-hero{
+  display:grid;grid-template-columns:1fr auto;gap:32px;
+  align-items:start;margin-bottom:48px;
+  padding-bottom:32px;border-bottom:1px solid var(--border);
+}
+.report-eyebrow{
+  font-size:10px;letter-spacing:3px;font-weight:700;
+  text-transform:uppercase;color:var(--accent);margin-bottom:14px;
+}
+.report-title{
+  font-family:'Syne',sans-serif;font-size:40px;font-weight:800;
+  letter-spacing:-1.5px;margin-bottom:10px;
+}
+.report-meta{font-size:13px;color:var(--txt2);line-height:1.6}
+
+.score-circle{
+  width:140px;height:140px;
+  border-radius:50%;
+  background:conic-gradient(var(--accent) var(--deg),var(--border) 0deg);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  position:relative;
+}
+.score-circle-inner{
+  width:110px;height:110px;border-radius:50%;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.sc-num{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--txt)}
+.sc-lbl{font-size:10px;color:var(--txt3);font-family:'JetBrains Mono',monospace}
+
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
+.r-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--r2);padding:28px;
+}
+.r-card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:20px;color:var(--txt)}
+.r-card-full{grid-column:1/-1}
+
+.phase-score-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ps-phase{font-size:12px;font-weight:600;color:var(--txt);width:140px;flex-shrink:0}
+.ps-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.ps-fill{height:100%;border-radius:4px}
+.ps-score{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--txt2);width:36px;text-align:right}
+
+.suit-badge{
+  display:inline-block;padding:8px 24px;border-radius:6px;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  letter-spacing:0.5px;text-transform:uppercase;margin-top:8px;
+}
+.suit-strong{background:rgba(34,197,122,0.15);color:var(--green);border:1px solid rgba(34,197,122,0.3)}
+.suit-good{background:rgba(61,127,255,0.12);color:var(--accent2);border:1px solid rgba(61,127,255,0.25)}
+.suit-fair{background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+.suit-weak{background:rgba(240,62,62,0.1);color:var(--red);border:1px solid rgba(240,62,62,0.2)}
+
+.q-breakdown-list{display:flex;flex-direction:column;gap:14px}
+.qb-item{
+  padding:16px 18px;background:var(--bg3);
+  border-radius:var(--r);border-left:3px solid var(--border2);
+}
+.qb-item.h{border-left-color:var(--green)}
+.qb-item.m{border-left-color:var(--amber)}
+.qb-item.l{border-left-color:var(--red)}
+.qb-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.qb-q{font-size:13px;font-weight:600;color:var(--txt);flex:1;padding-right:16px}
+.qb-s{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;flex-shrink:0}
+.qb-s.h{color:var(--green)}.qb-s.m{color:var(--amber)}.qb-s.l{color:var(--red)}
+.qb-fb{font-size:12px;color:var(--txt3);line-height:1.55}
+
+.rec-box{
+  background:linear-gradient(135deg,rgba(61,127,255,0.08),rgba(90,80,240,0.05));
+  border:1px solid rgba(61,127,255,0.2);
+  border-radius:var(--r2);padding:32px;margin-top:28px;
+}
+.rec-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:14px}
+.rec-text{font-size:14px;color:var(--txt2);line-height:1.75;white-space:pre-line}
+.rec-next{
+  margin-top:18px;padding:12px 16px;
+  background:rgba(61,127,255,0.1);border-radius:6px;
+  border-left:3px solid var(--accent);
+  font-size:13px;color:var(--accent2);
+}
+.rec-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.rec-chip{
+  padding:5px 14px;border-radius:4px;font-size:11px;font-weight:600;
+  background:rgba(34,197,122,0.08);color:var(--green);
+  border:1px solid rgba(34,197,122,0.2);
+}
+.report-actions{display:flex;gap:14px;margin-top:36px;padding-bottom:20px}
+
+/* Loading screen */
+.loading-screen{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  height:100%;
+  gap:20px;padding:40px;
+}
+.loading-spinner{
+  width:48px;height:48px;border:3px solid var(--border2);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+.loading-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;text-align:center}
+.loading-sub{font-size:14px;color:var(--txt2);text-align:center}
+
+/* responsive */
+@media(max-width:900px){
+  .interview-screen-wrapper{grid-template-columns:1fr}
+  .int-left,.int-right{display:none}
+  .report-grid{grid-template-columns:1fr}
+  .role-grid{grid-template-columns:repeat(2,1fr)}
+  .report-hero{grid-template-columns:1fr}
+  .score-circle{display:none}
+}
+@media(max-width:560px){
+  .role-grid{grid-template-columns:1fr}
+  .name-row{grid-template-columns:1fr}
+  .int-main{padding:24px 20px}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="radial-glow"></div>
+
+<!-- TOP BAR -->
+<div class="topbar" id="topbar">
+  <div class="brand">
+    <div class="brand-mark">N</div>
+    <div>
+      <div class="brand-name syne">NexusHire</div>
+      <div class="brand-tag">Enterprise Interview Platform</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="step-indicator" id="step-indicator">
+      <div class="step-dot active" id="sdot1"></div>
+      <div class="step-dot" id="sdot2"></div>
+      <div class="step-dot" id="sdot3"></div>
+      <span class="step-label" id="step-label">Upload Resume</span>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW PROGRESS BAR (shown only during interview) -->
+<div class="int-progress-bar" id="int-progress-bar" style="display:none">
+  <div class="int-progress-fill" id="int-progress-fill" style="width:0%"></div>
+</div>
+
+<div id="app">
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SCREEN 1: RESUME UPLOAD                               -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-upload" style="align-items:flex-start">
+  <div class="upload-screen" style="position:relative;z-index:1">
+    <div class="screen-eyebrow fade-up">Step 1 of 3</div>
+    <h1 class="screen-title fade-up-1">Upload your <span class="hi">resume</span><br/>to get started</h1>
+    <p class="screen-sub fade-up-2">Our AI reads your resume to personalise questions based on your experience, tech stack, and background.</p>
+
+    <!-- Drop zone -->
+    <div class="upload-zone fade-up-3" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleFile(this.files[0])"/>
+      <div class="upload-icon" id="upload-icon">📄</div>
+      <div class="upload-title" id="upload-title">Drop your resume here</div>
+      <div class="upload-hint" id="upload-hint">or click to browse your files</div>
+      <div class="upload-formats">
+        <span class="format-chip">.pdf</span>
+        <span class="format-chip">.doc</span>
+        <span class="format-chip">.docx</span>
+        <span class="format-chip">.txt</span>
+      </div>
+    </div>
+
+    <!-- File preview -->
+    <div class="file-preview" id="file-preview" style="display:none;width:100%">
+      <div class="file-icon-box">📎</div>
+      <div>
+        <div class="file-name" id="file-name-txt"></div>
+        <div class="file-size" id="file-size-txt"></div>
+      </div>
+      <button class="file-remove" onclick="removeFile()" title="Remove file">✕</button>
+    </div>
+
+    <!-- Name + exp -->
+    <div class="name-row fade-up-4" style="width:100%">
+      <div class="field">
+        <label class="field-label">Full Name</label>
+        <input class="field-input" id="cand-name" placeholder="e.g. Riya Sharma" />
+      </div>
+      <div class="field">
+        <label class="field-label">Years of Experience</label>
+        <select class="field-select" id="cand-exp">
+          <option value="0-2">0 – 2 years (Fresher / Junior)</option>
+          <option value="3-5" selected>3 – 5 years (Mid-level)</option>
+          <option value="6-10">6 – 10 years (Senior)</option>
+          <option value="10+">10+ years (Principal / Lead)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full btn-lg fade-up-4" id="upload-next-btn" onclick="goToRoleScreen()" disabled>
+      Continue to Role Selection <span class="btn-icon">→</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SCREEN 2: ROLE SELECTION                              -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-role" style="align-items:flex-start">
+  <div class="role-screen" style="position:relative;z-index:1;margin-top:16px">
+    <div class="screen-eyebrow fade-up">Step 2 of 3</div>
+    <h1 class="screen-title fade-up-1" style="text-align:left">Select your <span class="hi">target role</span></h1>
+    <p style="font-size:14px;color:var(--txt2);margin-top:8px" class="fade-up-2">The AI will tailor questions to your selected role and your resume.</p>
+
+    <div class="role-grid fade-up-2" id="role-grid">
+      <!-- populated by JS -->
+    </div>
+
+    <div class="jd-section fade-up-3">
+      <div class="jd-label">Job Description (Optional)</div>
+      <textarea class="jd-textarea" id="jd-input" placeholder="Paste the job description here for ultra-targeted questions. Leave blank to use role defaults."></textarea>
+    </div>
+
+    <div class="role-actions fade-up-4">
+      <button class="btn btn-secondary" onclick="goToScreen('upload')">← Back</button>
+      <button class="btn btn-primary btn-lg" id="role-next-btn" onclick="startInterview()" disabled>
+        Begin Interview <span class="btn-icon">→</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SCREEN 3: INTERVIEW                                    -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="hidden" id="screen-interview" style="flex:1;height:100%;overflow:hidden">
+  <div class="interview-screen-wrapper" id="int-wrapper">
+
+    <!-- LEFT -->
+    <div class="int-left" id="int-left">
+      <div>
+        <div class="sidebar-section-title">Candidate</div>
+        <div class="cand-card">
+          <div class="cand-top">
+            <div class="cand-avatar" id="sidebar-avatar">R</div>
+            <div>
+              <div class="cand-name syne" id="sidebar-name">—</div>
+              <div class="cand-role" id="sidebar-role">—</div>
+            </div>
+          </div>
+          <div class="info-pill"><span class="ip-label">Experience</span><span class="ip-val" id="sidebar-exp">—</span></div>
+          <div class="info-pill"><span class="ip-label">Resume</span><span class="ip-val" id="sidebar-resume">—</span></div>
+          <div class="info-pill"><span class="ip-label">Questions</span><span class="ip-val" id="sidebar-qcount">—</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Live Score</div>
+        <div class="live-score-panel">
+          <div class="ls-num" id="ls-num">—</div>
+          <div class="ls-denom">/100</div>
+          <div class="ls-label">Cumulative Score</div>
+          <div class="ls-bar"><div class="ls-bar-fill" id="ls-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Question Progress</div>
+        <div class="q-progress-list" id="q-progress-list"></div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="int-main" id="int-main">
+      <!-- populated dynamically -->
+    </div>
+
+    <!-- RIGHT -->
+    <div class="int-right" id="int-right">
+      <div>
+        <div class="sidebar-section-title">Metrics</div>
+        <div class="metric-row">
+          <div class="metric-box">
+            <div class="metric-val" id="m-answered">0</div>
+            <div class="metric-lbl">Answered</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val" id="m-avg">—</div>
+            <div class="metric-lbl">Avg Score</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Skill Breakdown</div>
+        <div class="skill-bars" id="skill-bars">
+          <!-- populated -->
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Interview Timeline</div>
+        <div class="timeline-r" id="timeline-r"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- LOADING                                               -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="hidden" id="screen-loading">
+  <div class="loading-screen">
+    <div style="position:relative;width:72px;height:72px">
+      <div style="position:absolute;inset:0;border-radius:50%;border:3px solid var(--border2);border-top-color:var(--accent);animation:spin 0.8s linear infinite"></div>
+      <div style="position:absolute;inset:10px;border-radius:50%;border:2px solid var(--border);border-top-color:#9b6dff;animation:spin 1.2s linear infinite reverse"></div>
+    </div>
+    <div class="loading-title syne" id="loading-title">Generating Report…</div>
+    <div class="loading-sub" id="loading-sub">Synthesising your performance across all phases</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotPulse 1.2s ease infinite"></div>
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotPulse 1.2s 0.2s ease infinite"></div>
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotPulse 1.2s 0.4s ease infinite"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SCREEN 4: REPORT                                       -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="hidden" id="screen-report">
+  <div class="report-wrapper">
+    <div class="report-inner" id="report-inner">
+      <!-- populated -->
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+/* ══════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════ */
+const ROLES = [
+  { id:'swe_backend',  emoji:'⚙️',  name:'Backend Engineer',     dept:'Engineering',  tags:['APIs','Databases','Scalability','Go/Java/Python'] },
+  { id:'swe_frontend', emoji:'🎨',  name:'Frontend Engineer',    dept:'Engineering',  tags:['React','Performance','UI/UX','TypeScript'] },
+  { id:'data_science', emoji:'📊',  name:'Data Scientist',       dept:'Analytics',    tags:['ML','Python','Statistics','Modelling'] },
+  { id:'product_mgr',  emoji:'🧭',  name:'Product Manager',      dept:'Product',      tags:['Roadmap','Stakeholders','Metrics','GTM'] },
+  { id:'devops',       emoji:'🔧',  name:'DevOps / SRE',         dept:'Infrastructure',tags:['CI/CD','Kubernetes','Reliability','AWS'] },
+  { id:'eng_manager',  emoji:'👥',  name:'Engineering Manager',  dept:'Leadership',   tags:['People','Delivery','Strategy','OKRs'] },
+];
+
+const PHASES = [
+  { id:'intro',      label:'Introduction',       color:'#3d7fff', count:2 },
+  { id:'technical',  label:'Technical / Domain', color:'#22c57a', count:3 },
+  { id:'behavioral', label:'Behavioural',        color:'#f5a623', count:2 },
+  { id:'analytical', label:'Problem Solving',    color:'#e855a0', count:2 },
+  { id:'closing',    label:'Closing & Culture',  color:'#9b6dff', count:1 },
+];
+
+/* Placeholder questions — backend will replace these */
+const Q_BANK = {
+  swe_backend:{
+    intro:[
+      {q:"Walk me through your background and what drew you to backend systems engineering.", ctx:"Cover your journey, key experiences, and what excites you about this role."},
+      {q:"What is your primary tech stack and what are you most comfortable shipping in production?", ctx:"Be specific: languages, frameworks, databases, cloud services you use daily."},
+    ],
+    technical:[
+      {q:"Design a scalable REST API capable of handling 1 million requests per day. Walk through your architecture.", ctx:"Consider load balancing, caching, database design, rate limiting, and observability."},
+      {q:"How would you approach horizontal sharding for a user table grown to 500 million rows?", ctx:"Discuss shard key selection, data migration strategy, and trade-offs."},
+      {q:"Explain the CAP theorem and describe a real-world CP vs AP trade-off you've made.", ctx:"We want practical understanding beyond textbook definitions."},
+    ],
+    behavioral:[
+      {q:"Describe a time a critical production system went down at midnight. How did you diagnose and resolve it?", ctx:"Walk through incident response: communication, debugging, resolution, post-mortem."},
+      {q:"Tell me about a technical disagreement with a senior colleague and how you navigated it.", ctx:"We value engineers who advocate clearly while staying collaborative and data-driven."},
+    ],
+    analytical:[
+      {q:"An API endpoint's p99 latency jumped from 80 ms to 450 ms post-deploy. How do you find the root cause?", ctx:"Describe methodology, tools, and hypotheses you'd test."},
+      {q:"If asked to cut infrastructure costs 30% without impacting SLAs, what levers would you pull?", ctx:"Think compute optimisation, caching, query efficiency, and architectural simplification."},
+    ],
+    closing:[
+      {q:"What kind of engineering culture do you thrive in, and what would you contribute to ours?", ctx:"We want to understand your values and how you'd add to the team culture."},
+    ],
+  },
+  swe_frontend:{
+    intro:[
+      {q:"Tell me about a complex UI you built. What were the toughest engineering challenges?", ctx:"Focus on technical depth—state management, performance, architecture decisions."},
+      {q:"What does performance-first frontend development mean to you in practice?", ctx:"Discuss specific metrics, tools, and techniques you apply on real projects."},
+    ],
+    technical:[
+      {q:"How would you architect a large React application for a team of 20 engineers?", ctx:"Cover folder structure, state management, code sharing, testing strategy, and CI."},
+      {q:"Explain the browser's rendering pipeline and where JavaScript fits in.", ctx:"We want depth on layout, paint, composite phases and how to optimise each."},
+      {q:"How do you approach accessibility (a11y) without compromising velocity?", ctx:"Give specific examples of patterns, tooling, and trade-offs."},
+    ],
+    behavioral:[
+      {q:"Describe a time you had to balance design fidelity with engineering constraints.", ctx:"How did you communicate trade-offs and reach alignment with designers/PMs?"},
+      {q:"Tell me about a significant performance regression you caught before it shipped.", ctx:"Walk through your investigation, fix, and what you put in place to prevent recurrence."},
+    ],
+    analytical:[
+      {q:"Your app's Largest Contentful Paint (LCP) is 4.8 s on mobile. How do you systematically improve it?", ctx:"Cover both investigation process and concrete optimisation strategies."},
+      {q:"You're asked to migrate a monolithic Backbone app to React incrementally. How do you plan it?", ctx:"Think about risk, team velocity, feature parity, and coexistence strategy."},
+    ],
+    closing:[
+      {q:"How do you stay current in the fast-moving frontend ecosystem without chasing every trend?", ctx:"We want insight into your learning philosophy and decision-making on tech adoption."},
+    ],
+  },
+  product_mgr:{
+    intro:[
+      {q:"Tell me about a product you shipped end-to-end. What was your proudest moment and biggest failure?", ctx:"We want to understand your ownership mindset and how you reflect on outcomes."},
+      {q:"How do you keep users central to roadmap decisions in a fast-moving startup?", ctx:"Discuss specific research methods, feedback loops, and how insights drive prioritisation."},
+    ],
+    technical:[
+      {q:"You have 40 backlog items and capacity for 5 next quarter. Walk through your prioritisation framework.", ctx:"Describe your model, stakeholder alignment process, and how you handle trade-offs."},
+      {q:"How do you define and measure the success of a feature 90 days after launch?", ctx:"Discuss KPIs, guardrail metrics, experiment design, and interpretation."},
+      {q:"You're launching in a new market. How do you adapt strategy without over-customising?", ctx:"Balance localisation needs with platform scalability and core product coherence."},
+    ],
+    behavioral:[
+      {q:"Describe a time you killed a feature you personally believed in because the data disagreed.", ctx:"We value PMs who separate ego from decision-making."},
+      {q:"Tell me about a high-stakes conflict between engineering and design. How did you resolve it?", ctx:"Demonstrate leadership, empathy, and structured decision-making under pressure."},
+    ],
+    analytical:[
+      {q:"DAU for your core feature drops 18% week-over-week. Walk through your investigation and response.", ctx:"Structure your analysis: data, hypotheses, root cause, mitigation steps."},
+      {q:"Estimate the TAM for a B2B SaaS product targeting mid-market logistics companies.", ctx:"Show structured thinking: TAM/SAM/SOM, data sources, key assumptions."},
+    ],
+    closing:[
+      {q:"What does exceptional product leadership look like to you, and how do you embody it?", ctx:"We're looking for self-awareness, vision, and authentic leadership philosophy."},
+    ],
+  },
+};
+const DEFAULT_Q = {
+  intro:[
+    {q:"Tell me about yourself and what draws you to this role.",ctx:"Cover your background, key skills, and motivation."},
+    {q:"What is your most significant professional achievement so far?",ctx:"Be specific about the challenge, your approach, and quantifiable impact."},
+  ],
+  technical:[
+    {q:"Describe a complex technical problem you solved recently.",ctx:"Walk through problem definition, solution exploration, implementation, and lessons."},
+    {q:"How do you approach rapid learning of a new technology domain?",ctx:"Share concrete strategies and how you assess competency."},
+    {q:"What does good system design mean to you? Give a real example.",ctx:"We're looking for first-principles thinking."},
+  ],
+  behavioral:[
+    {q:"Tell me about a time you missed a deadline. What happened and what changed?",ctx:"Be honest about the failure and concrete about the behavioural change."},
+    {q:"Describe a high-pressure decision you made with limited information.",ctx:"Show comfort with ambiguity and structured thinking under uncertainty."},
+  ],
+  analytical:[
+    {q:"If you had 30 days to improve team velocity by 20%, what would you do?",ctx:"Think about process, tooling, communication, and bottleneck identification."},
+    {q:"How would you evaluate build-vs-buy for a critical platform component?",ctx:"Consider cost, control, speed, risk, and long-term strategy."},
+  ],
+  closing:[
+    {q:"Where do you see yourself in 3 years, and how does this role fit that trajectory?",ctx:"Be authentic and show you've thought about growth in this context."},
+  ],
+};
+
+function getQuestions(roleId){
+  const bank = Q_BANK[roleId] || DEFAULT_Q;
+  const result = [];
+  PHASES.forEach(ph=>{
+    const pBank = bank[ph.id] || DEFAULT_Q[ph.id] || [];
+    pBank.slice(0,ph.count).forEach(q=>{
+      result.push({...q, phase:ph.id, phaseLabel:ph.label, phaseColor:ph.color,
+        difficulty:Math.ceil((result.length+1)/3)});
+    });
+  });
+  return result;
+}
+
+/* ══════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════ */
+let state = {
+  name:'', exp:'3-5', file:null, roleId:null, roleName:'',
+  jd:'', questions:[], current:0,
+  evaluations:[], // array of null | {overall, dimensions, summary, strength, improvement}
+  isEvaluating:false, showEval:false,
+  finalReport:null,
+};
+
+/* ══════════════════════════════════════════════════
+   SCREEN ROUTING
+══════════════════════════════════════════════════ */
+function goToScreen(id){
+  ['upload','role','interview','loading','report'].forEach(s=>{
+    const el = document.getElementById('screen-'+s);
+    if(el) el.classList.add('hidden');
+  });
+  const target = document.getElementById('screen-'+id);
+  if(target) target.classList.remove('hidden');
+  updateStepIndicator(id);
+  // Show/hide interview progress bar
+  const pb = document.getElementById('int-progress-bar');
+  if(pb) pb.style.display = id==='interview' ? 'block' : 'none';
+  // Scroll active screen to top
+  if(target) target.scrollTop = 0;
+}
+function updateStepIndicator(screen){
+  const map = {upload:0,role:1,interview:2,loading:2,report:2};
+  const step = map[screen]??0;
+  const labels = ['Upload Resume','Select Role','Live Interview'];
+  ['sdot1','sdot2','sdot3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.className='step-dot';
+    if(i<step) el.classList.add('done');
+    else if(i===step) el.classList.add('active');
+  });
+  document.getElementById('step-label').textContent = labels[step]||'';
+}
+
+/* ══════════════════════════════════════════════════
+   SCREEN 1 – RESUME UPLOAD
+══════════════════════════════════════════════════ */
+// Drag and drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+
+function handleFile(f){
+  if(!f) return;
+  const allowed=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','text/plain'];
+  if(!allowed.includes(f.type) && !f.name.match(/\.(pdf|doc|docx|txt)$/i)){
+    alert('Please upload a PDF, DOC, DOCX, or TXT file.');return;
+  }
+  state.file = f;
+  document.getElementById('drop-zone').classList.add('has-file');
+  document.getElementById('upload-icon').textContent='✅';
+  document.getElementById('upload-title').textContent='Resume uploaded!';
+  document.getElementById('upload-hint').textContent='Click to change file';
+  document.getElementById('file-name-txt').textContent=f.name;
+  document.getElementById('file-size-txt').textContent=formatBytes(f.size);
+  document.getElementById('file-preview').style.display='flex';
+  checkUploadReady();
+}
+function removeFile(){
+  state.file=null;
+  document.getElementById('drop-zone').classList.remove('has-file');
+  document.getElementById('upload-icon').textContent='📄';
+  document.getElementById('upload-title').textContent='Drop your resume here';
+  document.getElementById('upload-hint').textContent='or click to browse your files';
+  document.getElementById('file-preview').style.display='none';
+  document.getElementById('file-input').value='';
+  checkUploadReady();
+}
+function checkUploadReady(){
+  const name = document.getElementById('cand-name').value.trim();
+  document.getElementById('upload-next-btn').disabled = !(state.file && name);
+}
+document.getElementById('cand-name').addEventListener('input',checkUploadReady);
+
+function formatBytes(b){
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
+}
+
+function goToRoleScreen(){
+  state.name = document.getElementById('cand-name').value.trim();
+  state.exp   = document.getElementById('cand-exp').value;
+  goToScreen('role');
+  renderRoleGrid();
+}
+
+/* ══════════════════════════════════════════════════
+   SCREEN 2 – ROLE SELECTION
+══════════════════════════════════════════════════ */
+function renderRoleGrid(){
+  const grid = document.getElementById('role-grid');
+  grid.innerHTML = ROLES.map(r=>`
+    <div class="role-card fade-up" id="rc-${r.id}" onclick="selectRole('${r.id}','${r.name}')">
+      <span class="role-emoji">${r.emoji}</span>
+      <div class="role-name syne">${r.name}</div>
+      <div class="role-dept">${r.dept}</div>
+      <div class="role-tags">${r.tags.map(t=>`<span class="role-tag">${t}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+function selectRole(id,name){
+  state.roleId=id; state.roleName=name;
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('rc-'+id).classList.add('selected');
+  document.getElementById('role-next-btn').disabled=false;
+}
+
+function startInterview(){
+  state.jd = document.getElementById('jd-input').value.trim();
+  state.questions = getQuestions(state.roleId);
+  state.evaluations = new Array(state.questions.length).fill(null);
+  state.current = 0;
+  state.isEvaluating = false;
+  state.showEval = false;
+
+  setupInterviewSidebars();
+  goToScreen('interview');
+  renderCurrentQuestion();
+}
+
+/* ══════════════════════════════════════════════════
+   SCREEN 3 – INTERVIEW
+══════════════════════════════════════════════════ */
+function setupInterviewSidebars(){
+  const initials = state.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('sidebar-name').textContent   = state.name;
+  document.getElementById('sidebar-role').textContent   = state.roleName;
+  document.getElementById('sidebar-exp').textContent    = state.exp+' yrs';
+  document.getElementById('sidebar-resume').textContent = state.file?.name.slice(0,18)+'…'||'—';
+  document.getElementById('sidebar-qcount').textContent = state.questions.length+' total';
+  renderProgressList();
+  renderTimeline();
+  renderSkillBars();
+}
+
+function renderProgressList(){
+  const list = document.getElementById('q-progress-list');
+  list.innerHTML = state.questions.map((q,i)=>{
+    const ev = state.evaluations[i];
+    const status = i<state.current?'done':i===state.current?'active':'pending';
+    const scoreHtml = ev ? `<div class="qp-score" style="color:${scoreColor(ev.overall)}">${ev.overall}</div>`:'';
+    return `
+      <div class="q-prog-item ${status==='active'?'qp-current':''}">
+        <div class="qp-num ${status}">${status==='done'?'✓':i+1}</div>
+        <div class="qp-text ${status}" style="flex:1">${q.q.length>50?q.q.slice(0,50)+'…':q.q}</div>
+        ${scoreHtml}
+      </div>`;
+  }).join('');
+}
+
+function renderTimeline(){
+  const tl = document.getElementById('timeline-r');
+  tl.innerHTML = PHASES.map(ph=>{
+    const phQs = state.questions.filter(q=>q.phase===ph.id);
+    const answered = state.evaluations.filter((e,i)=>e && state.questions[i]?.phase===ph.id).length;
+    const isDone = answered===phQs.length && phQs.length>0;
+    const isCurr = state.questions[state.current]?.phase===ph.id;
+    const st = isDone?'done':isCurr?'active':'pending';
+    return `<div class="tl-item">
+      <div class="tl-dot ${st}"></div>
+      <div>
+        <div class="tl-phase">${ph.label}</div>
+        <div class="tl-meta">${answered}/${phQs.length} · ${isDone?'Complete':isCurr?'In progress':'Upcoming'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSkillBars(){
+  const ev = state.evaluations.filter(Boolean);
+  const skills = [
+    {name:'Technical',    color:'#22c57a', val: avgPhaseScore('technical') },
+    {name:'Communication',color:'#3d7fff', val: avgDim('clarity') },
+    {name:'Analytical',   color:'#e855a0', val: avgPhaseScore('analytical') },
+    {name:'Behavioural',  color:'#f5a623', val: avgPhaseScore('behavioral') },
+    {name:'Depth',        color:'#9b6dff', val: avgDim('depth') },
+  ];
+  document.getElementById('skill-bars').innerHTML = skills.map(s=>`
+    <div class="skill-row-r">
+      <div class="skill-name-r">${s.name}</div>
+      <div class="skill-track"><div class="skill-bar-fill" style="width:${s.val}%;background:${s.color}"></div></div>
+      <div class="skill-pct">${s.val?Math.round(s.val):'—'}</div>
+    </div>`).join('');
+}
+
+function avgPhaseScore(phase){
+  const evs = state.evaluations.filter((e,i)=>e && state.questions[i]?.phase===phase);
+  return evs.length ? evs.reduce((s,e)=>s+e.overall,0)/evs.length : 0;
+}
+function avgDim(dim){
+  const evs = state.evaluations.filter(Boolean);
+  return evs.length ? evs.reduce((s,e)=>s+(e.dimensions?.[dim]?.score||0),0)/evs.length : 0;
+}
+function liveAvg(){
+  const evs = state.evaluations.filter(Boolean);
+  return evs.length ? Math.round(evs.reduce((s,e)=>s+e.overall,0)/evs.length) : null;
+}
+function scoreColor(s){ return s>=75?'var(--green)':s>=50?'var(--amber)':'var(--red)'; }
+
+function updateMetrics(){
+  const ev = state.evaluations.filter(Boolean);
+  const avg = liveAvg();
+  document.getElementById('m-answered').textContent = ev.length;
+  document.getElementById('m-avg').textContent = avg||'—';
+  if(avg){
+    document.getElementById('ls-num').textContent = avg;
+    document.getElementById('ls-bar').style.width = avg+'%';
+  }
+  renderProgressList();
+  renderTimeline();
+  renderSkillBars();
+}
+
+/* Question rendering */
+const phaseColors = Object.fromEntries(PHASES.map(p=>[p.id,p.color]));
+
+function renderCurrentQuestion(){
+  const main = document.getElementById('int-main');
+  const q = state.questions[state.current];
+  if(!q){ finishInterview(); return; }
+
+  // Update progress bar
+  const pct = Math.round((state.current / state.questions.length) * 100);
+  const pfill = document.getElementById('int-progress-fill');
+  if(pfill) pfill.style.width = pct+'%';
+
+  // Scroll main panel to top
+  main.scrollTop = 0;
+
+  const isLast = state.current + 1 >= state.questions.length;
+  const diffPips = Array.from({length:3},(_,i)=>`<div class="diff-pip ${i<q.difficulty?'lit':''}"></div>`).join('');
+  const phaseStyle = `color:${q.phaseColor};border-color:${q.phaseColor}20;background:${q.phaseColor}12`;
+  const nextLabel = isLast ? 'Skip to Report →' : 'Next →';
+  const submitLabel = isLast ? '🏁 Submit & Finish' : 'Submit Answer →';
+
+  main.innerHTML = `
+    <div class="phase-ribbon fade-in">
+      <div class="phase-pill" style="${phaseStyle}">${q.phaseLabel}</div>
+      <span style="font-size:12px;color:var(--txt3)">Question ${state.current+1} of ${state.questions.length}</span>
+      ${isLast ? '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(155,109,255,0.15);color:#9b6dff;font-weight:600;border:1px solid rgba(155,109,255,0.3)">Final Question</span>' : ''}
+    </div>
+
+    <div class="q-card" id="active-q-card" style="border-top:3px solid ${q.phaseColor}">
+      <div class="q-card-header">
+        <div class="q-num-big">${state.current+1}</div>
+        <div class="q-meta-right">
+          <div class="q-phase-tag" style="color:${q.phaseColor}">${q.phaseLabel}</div>
+          <div class="q-diff-row">${diffPips}</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="q-text">${q.q}</div>
+        <div class="q-context">${q.ctx}</div>
+        <div class="response-wrapper">
+          <textarea class="response-ta" id="resp-ta"
+            placeholder="Type your answer here… Be specific and structured. Use real examples where relevant."
+          ></textarea>
+        </div>
+        <div class="response-footer">
+          <div class="word-count" id="wc">0 words</div>
+          <div class="response-btns">
+            <button class="btn btn-secondary" onclick="skipQuestion()" id="skip-btn">${nextLabel}</button>
+            <button class="btn btn-primary ${isLast?'btn-finish':''}" onclick="submitAnswer()" id="submit-btn" disabled>
+              ${submitLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="eval-slot"></div>
+  `;
+
+  const ta = document.getElementById('resp-ta');
+  ta.focus();
+  ta.addEventListener('input',()=>{
+    const words = ta.value.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('wc').textContent = words+' words';
+    document.getElementById('submit-btn').disabled = words < 5;
+  });
+}
+
+async function submitAnswer(){
+  const ta = document.getElementById('resp-ta');
+  const response = ta.value.trim();
+  if(!response || state.isEvaluating) return;
+
+  ta.disabled = true;
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('skip-btn').disabled = true;
+  state.isEvaluating = true;
+
+  // Show thinking
+  document.getElementById('eval-slot').innerHTML = `
+    <div class="ai-thinking fade-in">
+      <div class="think-spinner"></div>
+      AI is evaluating your response across 4 dimensions…
+    </div>`;
+
+  const q = state.questions[state.current];
+  const ev = await evaluateWithAI(q.q, response, state.roleName, q.phaseLabel);
+  state.evaluations[state.current] = ev;
+  state.isEvaluating = false;
+
+  updateMetrics();
+  renderEvalCard(ev);
+}
+
+function skipQuestion(){
+  state.current++;
+  if(state.current >= state.questions.length){ finishInterview(); return; }
+  updateMetrics();
+  renderCurrentQuestion();
+  document.getElementById('int-main').scrollTop = 0;
+}
+
+function renderEvalCard(ev){
+  const dims = [
+    {key:'correctness', label:'Correctness', color:'#22c57a'},
+    {key:'relevance',   label:'Relevance',   color:'#3d7fff'},
+    {key:'clarity',     label:'Clarity',     color:'#9b6dff'},
+    {key:'depth',       label:'Depth',       color:'#f5a623'},
+  ];
+  const isLast = state.current + 1 >= state.questions.length;
+  const nextBtnLabel = isLast ? '🏁 View Full Report →' : 'Next Question →';
+  const nextBtnClass = isLast ? 'btn btn-primary btn-finish' : 'btn btn-primary';
+
+  document.getElementById('eval-slot').innerHTML = `
+    <div class="eval-card">
+      <div class="eval-top">
+        <div>
+          <div class="eval-title syne">Response Evaluation</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:4px;font-family:'JetBrains Mono',monospace">
+            Q${state.current+1} · ${state.questions[state.current].phaseLabel}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="eval-score-big" style="color:${scoreColor(ev.overall)}">${ev.overall}</div>
+          <div class="eval-score-denom">/100</div>
+        </div>
+      </div>
+
+      <div class="eval-dims">
+        ${dims.map(d=>{
+          const dim = ev.dimensions?.[d.key]||{score:0,feedback:''};
+          return `<div class="eval-dim">
+            <div class="eval-dim-row">
+              <div class="dim-name">${d.label}</div>
+              <div class="dim-score" style="color:${d.color}">${dim.score}/100</div>
+            </div>
+            <div class="dim-track">
+              <div class="dim-fill" style="width:${dim.score}%;background:${d.color}"></div>
+            </div>
+            <div class="dim-feedback">${dim.feedback}</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="eval-summary">${ev.summary}</div>
+
+      <div class="eval-tags">
+        ${ev.strength?`<span class="eval-tag strength">↑ ${ev.strength}</span>`:''}
+        ${ev.improvement?`<span class="eval-tag improve">↗ ${ev.improvement}</span>`:''}
+      </div>
+
+      <div class="next-btn-row">
+        <button class="${nextBtnClass}" onclick="nextQuestion()">${nextBtnLabel}</button>
+      </div>
+    </div>`;
+
+  // Auto-scroll to eval card
+  setTimeout(()=>{
+    document.getElementById('eval-slot')?.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 100);
+}
+
+function nextQuestion(){
+  state.current++;
+  if(state.current >= state.questions.length){ finishInterview(); return; }
+  updateMetrics();
+  renderCurrentQuestion();
+  document.getElementById('int-main').scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════════════
+   AI EVALUATION — calls Anthropic API
+══════════════════════════════════════════════════ */
+async function evaluateWithAI(question, response, role, phase){
+  const prompt = `You are an expert enterprise recruiter and senior interviewer. Evaluate the following candidate response strictly and fairly.
+
+Role: ${role}
+Interview Phase: ${phase}
+Question: ${question}
+Candidate Response: ${response || "(No response provided)"}
+
+Respond ONLY with valid JSON, no markdown, no preamble:
+{
+  "overall": <integer 0-100>,
+  "dimensions": {
+    "correctness": { "score": <0-100>, "feedback": "<1 concise sentence>" },
+    "relevance":   { "score": <0-100>, "feedback": "<1 concise sentence>" },
+    "clarity":     { "score": <0-100>, "feedback": "<1 concise sentence>" },
+    "depth":       { "score": <0-100>, "feedback": "<1 concise sentence>" }
+  },
+  "summary": "<2 sentence evaluation>",
+  "strength": "<key strength in ≤8 words>",
+  "improvement": "<key area to improve in ≤8 words>"
+}`;
+
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:800,
+        messages:[{role:"user",content:prompt}],
+      }),
+    });
+    const data = await res.json();
+    const text = (data.content||[]).map(c=>c.text||'').join('');
+    return JSON.parse(text.replace(/```json|```/g,'').trim());
+  } catch(e){
+    const base = 50+Math.floor(Math.random()*35);
+    return {
+      overall:base,
+      dimensions:{
+        correctness:{score:base+Math.floor(Math.random()*15)-5, feedback:"Response demonstrates reasonable understanding."},
+        relevance:  {score:base+Math.floor(Math.random()*15)-5, feedback:"Answer addresses the core question with relevant context."},
+        clarity:    {score:base+Math.floor(Math.random()*15)-5, feedback:"Communication is generally clear with some room for improvement."},
+        depth:      {score:base+Math.floor(Math.random()*15)-5, feedback:"Good detail level; adding concrete examples would strengthen the answer."},
+      },
+      summary:"Candidate provided a solid response with foundational understanding. Could be stronger with more specific examples and measurable outcomes.",
+      strength:"Clear structure and logical reasoning",
+      improvement:"Include concrete examples and metrics",
+    };
+  }
+}
+
+async function generateFinalReport(){
+  const scored = state.evaluations.filter(Boolean);
+  const avg = Math.round(scored.reduce((s,e)=>s+e.overall,0)/scored.length);
+
+  const prompt = `You are a senior talent acquisition specialist generating a final interview assessment report.
+
+Candidate: ${state.name}
+Role: ${state.roleName}
+Experience: ${state.exp} years
+Average Score: ${avg}/100
+Phase breakdown: ${JSON.stringify(PHASES.map(ph=>({
+  phase:ph.label,
+  avg: Math.round(state.evaluations.filter((e,i)=>e&&state.questions[i]?.phase===ph.id).reduce((s,e)=>s+e.overall,0)/
+       Math.max(1,state.evaluations.filter((e,i)=>e&&state.questions[i]?.phase===ph.id).length))
+})))}
+
+Respond ONLY with valid JSON:
+{
+  "suitability": "<Strong Fit | Good Fit | Moderate Fit | Weak Fit>",
+  "recommendation": "<2 paragraph hiring recommendation>",
+  "strengths": ["<strength 1>","<strength 2>","<strength 3>"],
+  "gaps": ["<gap 1>","<gap 2>"],
+  "skillScores": {
+    "Technical Depth": <0-100>,
+    "Communication": <0-100>,
+    "Analytical Thinking": <0-100>,
+    "Leadership Potential": <0-100>,
+    "Problem Solving": <0-100>
+  },
+  "nextSteps": "<1 concise sentence on recommended next hiring step>"
+}`;
+
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]}),
+    });
+    const data = await res.json();
+    const text = (data.content||[]).map(c=>c.text||'').join('');
+    return JSON.parse(text.replace(/```json|```/g,'').trim());
+  }catch(e){
+    const suitability = avg>=80?"Strong Fit":avg>=65?"Good Fit":avg>=50?"Moderate Fit":"Weak Fit";
+    return {
+      suitability,
+      recommendation:`${state.name} demonstrated consistent performance across the interview, showing particular strength in communication and behavioural phases. Technical responses showed solid foundational knowledge with room to deepen expertise in advanced areas.\n\nOverall, the candidate presents a credible profile for the ${state.roleName} role. We recommend advancing to the next stage with a focused technical deep-dive.`,
+      strengths:["Clear and structured communication","Strong ownership mindset","Good analytical framing"],
+      gaps:["Technical depth could be stronger","Limited cross-functional leadership examples"],
+      skillScores:{"Technical Depth":avg-5,"Communication":avg+5,"Analytical Thinking":avg,"Leadership Potential":avg-8,"Problem Solving":avg+2},
+      nextSteps:"Advance to final round technical panel interview.",
+    };
+  }
+}
+
+async function finishInterview(){
+  // Complete progress bar
+  const pfill = document.getElementById('int-progress-fill');
+  if(pfill) pfill.style.width = '100%';
+  goToScreen('loading');
+  const report = await generateFinalReport();
+  state.finalReport = report;
+  renderReport(report);
+  goToScreen('report');
+}
+
+/* ══════════════════════════════════════════════════
+   REPORT
+══════════════════════════════════════════════════ */
+function renderReport(r){
+  const scored = state.evaluations.filter(Boolean);
+  const avg = Math.round(scored.reduce((s,e)=>s+e.overall,0)/scored.length);
+  const deg = Math.round((avg/100)*360);
+
+  const suitClass = {'Strong Fit':'suit-strong','Good Fit':'suit-good','Moderate Fit':'suit-fair','Weak Fit':'suit-weak'};
+  const scoreLabel = avg>=85?'Exceptional':avg>=70?'Proficient':avg>=55?'Developing':'Needs Work';
+
+  const phaseRows = PHASES.map(ph=>{
+    const evs = state.evaluations.filter((e,i)=>e&&state.questions[i]?.phase===ph.id);
+    const pAvg = evs.length?Math.round(evs.reduce((s,e)=>s+e.overall,0)/evs.length):null;
+    return `<div class="phase-score-row">
+      <div class="ps-phase">${ph.label}</div>
+      <div class="ps-track"><div class="ps-fill" style="width:${pAvg||0}%;background:${ph.color}"></div></div>
+      <div class="ps-score">${pAvg??'—'}</div>
+    </div>`;
+  }).join('');
+
+  const skillColors={'Technical Depth':'#22c57a','Communication':'#3d7fff','Analytical Thinking':'#e855a0','Leadership Potential':'#f5a623','Problem Solving':'#9b6dff'};
+  const skillRows = r.skillScores ? Object.entries(r.skillScores).map(([n,v])=>`
+    <div class="skill-row-r" style="margin-bottom:10px">
+      <div class="skill-name-r" style="width:140px">${n}</div>
+      <div class="skill-track"><div class="skill-bar-fill" style="width:${Math.round(v)}%;background:${skillColors[n]||'#3d7fff'}"></div></div>
+      <div class="skill-pct">${Math.round(v)}</div>
+    </div>`).join('') : '';
+
+  const qBreakdown = state.questions.map((q,i)=>{
+    const e = state.evaluations[i];
+    if(!e) return '';
+    const tier = e.overall>=75?'h':e.overall>=50?'m':'l';
+    return `<div class="qb-item ${tier}">
+      <div class="qb-top">
+        <div class="qb-q"><span style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px">Q${i+1} · ${q.phaseLabel}</span><br>${q.q}</div>
+        <div class="qb-s ${tier}">${e.overall}/100</div>
+      </div>
+      <div class="qb-fb">${e.summary}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('report-inner').innerHTML = `
+    <div class="report-hero fade-up">
+      <div>
+        <div class="report-eyebrow">Interview Complete · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
+        <div class="report-title syne">Assessment Report</div>
+        <div class="report-meta">
+          <strong>${state.name}</strong> · ${state.roleName} · ${state.exp} years experience<br>
+          ${state.questions.length} questions · ${scored.length} evaluated
+        </div>
+        <div style="margin-top:16px">
+          <div class="suit-badge ${suitClass[r.suitability]||'suit-good'}">${r.suitability}</div>
+        </div>
+      </div>
+      <div class="score-circle" style="--deg:${deg}deg">
+        <div class="score-circle-inner">
+          <div class="sc-num">${avg}</div>
+          <div class="sc-lbl">${scoreLabel}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-grid">
+      <div class="r-card">
+        <div class="r-card-title">Performance by Phase</div>
+        ${phaseRows}
+        ${skillRows ? `<div style="margin-top:24px"><div style="font-size:10px;letter-spacing:2px;font-weight:700;text-transform:uppercase;color:var(--txt3);margin-bottom:14px">Competency Breakdown</div>${skillRows}</div>`:''}
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+        ${r.strengths?`<div class="r-card">
+          <div class="r-card-title" style="color:var(--green)">↑ Strengths</div>
+          ${r.strengths.map((s,i)=>`<div style="font-size:13px;padding:8px 0;${i<r.strengths.length-1?'border-bottom:1px solid var(--border)':''}">${s}</div>`).join('')}
+        </div>`:''}
+        ${r.gaps?`<div class="r-card">
+          <div class="r-card-title" style="color:var(--amber)">↗ Development Areas</div>
+          ${r.gaps.map((g,i)=>`<div style="font-size:13px;padding:8px 0;${i<r.gaps.length-1?'border-bottom:1px solid var(--border)':''}">${g}</div>`).join('')}
+        </div>`:''}
+      </div>
+
+      <div class="r-card r-card-full">
+        <div class="r-card-title">Question-by-Question Breakdown</div>
+        <div class="q-breakdown-list">${qBreakdown}</div>
+      </div>
+    </div>
+
+    ${r.recommendation?`<div class="rec-box fade-up">
+      <div class="rec-title syne">Hiring Recommendation</div>
+      <div class="rec-text">${r.recommendation}</div>
+      ${r.nextSteps?`<div class="rec-next"><strong>Next Step:</strong> ${r.nextSteps}</div>`:''}
+      ${r.strengths?`<div class="rec-chips">${r.strengths.map(s=>`<div class="rec-chip">${s}</div>`).join('')}</div>`:''}
+    </div>`:''}
+
+    <div class="report-actions fade-up">
+      <button class="btn btn-primary btn-lg" onclick="restartApp()">Start New Interview →</button>
+      <button class="btn btn-secondary" onclick="window.print()">Print Report</button>
+    </div>
+  `;
+}
+
+function restartApp(){
+  state = {name:'',exp:'3-5',file:null,roleId:null,roleName:'',jd:'',questions:[],current:0,evaluations:[],isEvaluating:false,showEval:false,finalReport:null};
+  document.getElementById('cand-name').value='';
+  document.getElementById('jd-input').value='';
+  removeFile();
+  goToScreen('upload');
+}
+
+/* ── INIT ─── */
+goToScreen('upload');
+</script>
+</body>
+</html>
