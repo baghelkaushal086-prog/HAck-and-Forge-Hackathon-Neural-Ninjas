@@ -1,3 +1,10 @@
+WEbsite working link
+https://nexushire.onrender.com
+
+
+
+
+
 # 🤖 NexusHire — Enterprise AI Interview Platform
 
 > **An intelligent, voice-enabled interview system that dynamically generates and evaluates technical questions using the Groq API (LLaMA 3.3), Whisper speech-to-text, and ElevenLabs / gTTS for voice synthesis.**
