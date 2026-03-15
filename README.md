@@ -2,8 +2,6 @@
 
 > **An intelligent, voice-enabled interview system that dynamically generates and evaluates technical questions using the Groq API (LLaMA 3.3), Whisper speech-to-text, and ElevenLabs / gTTS for voice synthesis.**
 
-![NexusHire Banner](https://user-images.githubusercontent.com/11867844/placeholder-nexushire-banner.png)
-
 ---
 
 ## 🧭 Overview
@@ -132,62 +130,6 @@ Now simply open your local `index.html` in any modern browser.
 
 ---
 
-## 🌐 Deploying Publicly (Free)
-
-### 🪄 Option 1 — Deploy to Render (Free)
-
-Render allows free hosting for small apps!
-
-1. Push your code to GitHub  
-2. Go to [Render.com](https://render.com)
-3. Create a **new Web Service**
-4. Choose **Runtime = Docker**
-5. Add these **Environment Variables**:
-GROQ_API_KEY=your_groq_api_key
-ELEVEN_API_KEY=your_elevenlabs_key
-6. Deploy 🌍
-
-You’ll get a live URL like:
-
-https://nexushire.onrender.com
-
-Edit your API base in `index.html`:
-```javascript
-const API_BASE =
-  window.location.hostname === "localhost"
-    ? "http://localhost:8000/api"
-    : window.location.origin + "/api";
-```
-
-✅ Done! Anyone can now use your AI interviewer.
-
----
-
-## ✅ Example Deployment Output
-
-- **Upload Resume**
-  > “Extracted 2,694 characters — anonymized successfully”
-- **First Question**
-  > “Describe a complex backend system you designed.”
-- **AI Feedback**
-  > “Excellent technical insight. Could mention scalability metrics — 8/10”
-- **Final Report Snapshot**
-  > “Strong fit for Backend Engineering role, recommended for technical panel.”
-
----
-
-## 📸 Screenshots
-
-*(Replace these with your own screenshots once deployed)*
-
-| Step | Preview |
-|------|----------|
-| Resume Upload | ![Upload](https://user-images.githubusercontent.com/11867844/placeholder-upload.png) |
-| Dynamic Question | ![Question](https://user-images.githubusercontent.com/11867844/placeholder-question.png) |
-| Live Evaluation | ![Eval](https://user-images.githubusercontent.com/11867844/placeholder-eval.png) |
-| Final Report | ![Report](https://user-images.githubusercontent.com/11867844/placeholder-report.png) |
-
----
 
 ## 🧩 Project Structure
 
