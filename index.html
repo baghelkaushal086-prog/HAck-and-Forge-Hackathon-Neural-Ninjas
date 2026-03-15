@@ -1,1130 +1,1206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Interview Agent – Enterprise</title>
-    <style>
-        /* --- Design Tokens --- */
-        :root {
-            --bg: #0b0e14;
-            --surface: #151a25;
-            --surface-2: #1e2532;
-            --surface-3: #252f3f;
-            --primary: #6366f1;
-            --primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
-            --accent: #06b6d4;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #2d3748;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --font: "Inter", system-ui, -apple-system, sans-serif;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NexusHire — Enterprise Interview Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090d;--surface:#0d1117;--surface2:#121820;--surface3:#1a2130;
+  --border:#1c2535;--border2:#28364d;
+  --text:#dde3f0;--text2:#7a87a3;--text3:#3d4d63;
+  --blue:#4080ff;--blue2:#6699ff;--blue-glow:rgba(64,128,255,0.15);
+  --green:#1fc874;--amber:#f0a020;--red:#e83c3c;--purple:#9d6fff;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Instrument Sans',sans-serif;color:var(--text)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: var(--font);
-            background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 60%);
-            color: var(--text);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
+/* ── AMBIENT ── */
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 70% 20%,rgba(64,128,255,0.07),transparent 60%),
+             radial-gradient(ellipse 50% 30% at 20% 80%,rgba(157,111,255,0.05),transparent 60%)}
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(64,128,255,0.025) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(64,128,255,0.025) 1px,transparent 1px);
+  background-size:60px 60px}
 
-        /* --- App Container --- */
-        #app {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            width: 100%;
-            max-width: 960px;
-            margin: 0 auto;
-        }
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:58px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 32px;
+  background:rgba(7,9,13,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:28px;height:28px;border-radius:7px;
+  background:linear-gradient(135deg,var(--blue),#7060ff);
+  display:grid;place-items:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:#fff;
+  box-shadow:0 0 14px rgba(64,128,255,0.4)}
+.brand-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;letter-spacing:-0.3px}
+.brand-dot{color:var(--blue)}
 
-        /* --- Header --- */
-        header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            background: rgba(11, 14, 20, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
-        }
-        .brand {
-            font-size: 1.1rem;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .status-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-            box-shadow: 0 0 8px var(--success);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+/* ── STEP PILLS ── */
+.step-pills{display:flex;align-items:center;gap:4px}
+.step-pill{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;
+  font-size:11px;font-weight:600;color:var(--text3);border:1px solid transparent;transition:all 0.4s var(--ease)}
+.step-pill.done{color:var(--green)}
+.step-pill.active{color:var(--blue);background:rgba(64,128,255,0.08);border-color:rgba(64,128,255,0.2)}
+.step-num{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;
+  font-size:9px;font-weight:700;border:1.5px solid currentColor;flex-shrink:0;transition:all 0.3s}
+.step-pill.done .step-num{background:var(--green);border-color:var(--green);color:#000}
+.step-pill.active .step-num{background:var(--blue);border-color:var(--blue);color:#fff}
+.pill-sep{width:18px;height:1px;background:var(--border2);transition:background 0.4s}
+.pill-sep.done{background:rgba(31,200,116,0.4)}
 
-        /* --- Views --- */
-        .view {
-            display: none;
-            width: 100%;
-            animation: fadeIn 0.5s ease;
-        }
-        .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* ── PROGRESS LINE ── */
+.prog-line{position:fixed;top:58px;left:0;right:0;z-index:199;height:2px;background:var(--border)}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));transition:width 0.7s var(--ease);width:0%}
 
-        /* --- Cards --- */
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 32px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-            transition: var(--transition);
-        }
-        .card:hover { border-color: var(--primary); box-shadow: 0 0 30px rgba(99,102,241,0.15); }
+/* ── STAGE ── */
+#stage{position:fixed;inset:0;top:60px;overflow:hidden}
 
-        /* --- Setup Wizard --- */
-        .wizard-steps { display: flex; justify-content: space-between; margin-bottom: 32px; position: relative; }
-        .wizard-steps::before {
-            content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px;
-            background: var(--surface-3); z-index: 0; transform: translateY(-50%);
-        }
-        .step {
-            position: relative; z-index: 1;
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            flex: 1;
-        }
-        .step-circle {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: var(--surface-3); border: 2px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.9rem; color: var(--text-muted);
-            transition: var(--transition);
-        }
-        .step.active .step-circle { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 0 15px var(--primary); }
-        .step.completed .step-circle { background: var(--success); border-color: var(--success); color: white; }
-        .step-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .step.active .step-label { color: var(--primary); }
+/* ── SCENE ── */
+.scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:32px 24px;
+  opacity:0;transform:translateY(52px) scale(0.97);pointer-events:none;
+  transition:opacity 0.55s var(--ease),transform 0.55s var(--ease);will-change:opacity,transform}
+.scene.active{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.scene.exit-up{opacity:0;transform:translateY(-44px) scale(0.97);pointer-events:none;transition:opacity 0.32s ease-in,transform 0.32s ease-in}
+.scene.exit-down{opacity:0;transform:translateY(44px) scale(0.97);pointer-events:none;transition:opacity 0.32s ease-in,transform 0.32s ease-in}
+.scene-interview{align-items:stretch;padding:0}
+.scene-report{display:block;overflow-y:auto;padding:40px}
 
-        .wizard-content { min-height: 320px; }
-        .wizard-footer { display: flex; justify-content: space-between; margin-top: 24px; }
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 52px;
+  width:100%;max-width:520px;box-shadow:0 24px 64px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.03);
+  position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(64,128,255,0.45),transparent)}
+.card-wide{max-width:800px}
 
-        /* --- Form Elements --- */
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); }
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--surface-2);
-            color: var(--text);
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
-        }
+/* ── TYPOGRAPHY ── */
+.eyebrow{display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--blue);margin-bottom:16px}
+.eyebrow::before{content:'';width:18px;height:1px;background:var(--blue);opacity:0.6}
+.card-title{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.8px;line-height:1.1;color:var(--text);margin-bottom:10px}
+.card-title .hl{color:var(--blue)}
+.card-sub{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:28px}
 
-        /* --- Role Cards (Interactive) --- */
-        .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-        .role-card {
-            padding: 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--surface-2);
-            cursor: pointer;
-            text-align: center;
-            transition: var(--transition);
-        }
-        .role-card:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .role-card.selected {
-            border-color: var(--primary);
-            background: rgba(99,102,241,0.1);
-            box-shadow: 0 0 20px rgba(99,102,241,0.2);
-        }
-        .role-icon { font-size: 2rem; margin-bottom: 8px; }
+/* ── FORM ── */
+.field{display:flex;flex-direction:column;gap:7px}
+.field-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2)}
+.field-input,.field-select,.field-ta{width:100%;padding:13px 15px;background:var(--surface2);
+  border:1.5px solid var(--border2);border-radius:10px;font-family:'Instrument Sans',sans-serif;
+  font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;appearance:none}
+.field-input:focus,.field-select:focus,.field-ta:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(64,128,255,0.1)}
+.field-input::placeholder,.field-ta::placeholder{color:var(--text3);font-style:italic}
+.field-ta{resize:none;line-height:1.65}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
-        /* --- Upload Zone --- */
-        .upload-zone {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-md);
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            background: var(--surface-2);
-        }
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--accent);
-            background: rgba(6,182,212,0.05);
-        }
-        .upload-icon { font-size: 3rem; margin-bottom: 12px; color: var(--text-muted); }
-        .file-name { margin-top: 12px; font-size: 0.875rem; color: var(--accent); font-weight: 600; }
+/* ── UPLOAD ── */
+.upload-zone{border:1.5px dashed var(--border2);border-radius:14px;padding:32px 24px;
+  text-align:center;cursor:pointer;background:rgba(255,255,255,0.015);transition:all 0.3s var(--ease);position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:rgba(64,128,255,0.06);box-shadow:0 0 0 4px rgba(64,128,255,0.07)}
+.upload-zone.ready{border-color:var(--green);border-style:solid;background:rgba(31,200,116,0.05)}
+.upload-ico{width:52px;height:52px;border-radius:13px;margin:0 auto 12px;
+  background:linear-gradient(135deg,rgba(64,128,255,0.15),rgba(112,96,255,0.1));
+  border:1px solid rgba(64,128,255,0.2);display:grid;place-items:center;font-size:22px;transition:transform 0.3s var(--ease)}
+.upload-zone:hover .upload-ico{transform:translateY(-4px) scale(1.08)}
+.upload-zone.ready .upload-ico{background:rgba(31,200,116,0.12);border-color:rgba(31,200,116,0.3)}
+.upload-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px}
+.upload-hint{font-size:12px;color:var(--text2);margin-bottom:10px}
+.fmt-chips{display:flex;gap:5px;justify-content:center}
+.fmt-chip{padding:2px 9px;border-radius:20px;font-size:9px;font-weight:700;background:var(--surface3);border:1px solid var(--border);color:var(--text3);font-family:'JetBrains Mono',monospace}
+.file-row{display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;margin-top:12px}
+.file-ico{width:34px;height:34px;border-radius:8px;background:rgba(31,200,116,0.12);border:1px solid rgba(31,200,116,0.25);display:grid;place-items:center;font-size:14px;flex-shrink:0}
+.file-name{font-size:13px;font-weight:600}
+.file-sz{font-size:10px;color:var(--text2);margin-top:2px}
+.file-rm{margin-left:auto;background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:4px;border-radius:4px;transition:color 0.2s}
+.file-rm:hover{color:var(--red)}
 
-        /* --- Buttons --- */
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            gap: 8px; padding: 12px 24px; border: none; border-radius: var(--radius-sm);
-            font-weight: 700; cursor: pointer; transition: var(--transition);
-            font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;
-        }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 4px 20px rgba(99,102,241,0.4);
-        }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(99,102,241,0.6); }
-        .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-        .btn-ghost { background: transparent; color: var(--text-muted); }
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 26px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.2s var(--ease)}
+.btn-primary{background:linear-gradient(135deg,var(--blue),#6050f0);color:#fff;box-shadow:0 4px 18px rgba(64,128,255,0.3)}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(64,128,255,0.45)}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-finish{background:linear-gradient(135deg,var(--purple),#6050f0)!important;box-shadow:0 4px 18px rgba(157,111,255,0.35)!important}
+.btn:disabled{opacity:0.3;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-full{width:100%;margin-top:22px}
+.btn-row{display:flex;gap:10px;align-items:center;margin-top:24px}
+.btn-row .btn-primary{flex:1}
 
-        /* --- Interview Layout --- */
-        .interview-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .progress-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 24px;
-            padding: 16px 24px;
-            background: var(--surface-2);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-        }
-        .progress-text { font-weight: 700; color: var(--text-muted); }
+/* ── ROLE GRID ── */
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.role-card{padding:18px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;
+  cursor:pointer;transition:all 0.25s var(--ease);position:relative}
+.role-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 24px rgba(64,128,255,0.12)}
+.role-card.selected{border-color:var(--blue);background:rgba(64,128,255,0.07);box-shadow:0 0 0 3px rgba(64,128,255,0.12)}
+.role-card.selected::after{content:'✓';position:absolute;top:9px;right:9px;width:17px;height:17px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:9px;font-weight:700}
+.role-emoji{font-size:20px;margin-bottom:8px;display:block}
+.role-name{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;margin-bottom:2px}
+.role-dept{font-size:10px;color:var(--text2);margin-bottom:7px}
+.role-tags{display:flex;flex-wrap:wrap;gap:3px}
+.role-tag{padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;background:var(--surface3);border:1px solid var(--border);color:var(--text3);font-family:'JetBrains Mono',monospace}
 
-        /* --- Circular Timer --- */
-        .timer-wrapper { position: relative; width: 70px; height: 70px; }
-        .timer-svg { transform: rotate(-90deg); }
-        .timer-circle {
-            fill: none; stroke: var(--surface-3); stroke-width: 6;
-        }
-        .timer-circle-progress {
-            fill: none; stroke: var(--warning); stroke-width: 6;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 1s linear, stroke 0.3s;
-            stroke-dasharray: 220; stroke-dashoffset: 0;
-        }
-        .timer-text {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.1rem; font-weight: 800;
-        }
+/* ── INTERVIEW GRID ── */
+.int-grid{display:grid;grid-template-columns:252px 1fr 268px;height:100%;overflow:hidden}
+.int-side{padding:22px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.int-left{background:var(--surface);border-right:1px solid var(--border)}
+.int-right{background:var(--surface);border-left:1px solid var(--border)}
+.int-main{background:var(--bg);padding:32px 40px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+.sid-label{font-size:9px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.cand-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px}
+.cand-top{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.cand-av{width:36px;height:36px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,var(--blue),#6050f0);display:grid;place-items:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#fff}
+.cand-name{font-family:'Syne',sans-serif;font-weight:700;font-size:12px}
+.cand-role{font-size:10px;color:var(--text2);margin-top:1px}
+.info-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:10px}
+.info-row:last-child{border-bottom:none}
+.ir-l{color:var(--text3)}.ir-v{color:var(--text);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:9px}
+.score-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px}
+.score-big{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:var(--blue);line-height:1}
+.score-den{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.score-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:3px}
+.score-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.score-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:2px;transition:width 0.8s var(--ease)}
+.q-list{display:flex;flex-direction:column;gap:1px}
+.q-item{display:flex;align-items:flex-start;gap:7px;padding:6px 8px;border-radius:7px;transition:background 0.2s}
+.q-item.curr{background:rgba(64,128,255,0.08)}
+.qn{width:17px;height:17px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:9px;font-weight:700;margin-top:1px}
+.qn.done{background:var(--green);color:#000}.qn.curr{background:var(--blue);color:#fff}
+.qn.pend{background:var(--surface3);border:1px solid var(--border);color:var(--text3)}
+.qt{font-size:10px;color:var(--text2);line-height:1.4;flex:1}.qt.curr{color:var(--text);font-weight:500}
+.qs{font-family:'JetBrains Mono',monospace;font-size:9px;flex-shrink:0}
+.met-row{display:flex;gap:8px}
+.met-box{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px}
+.met-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.met-lbl{font-size:8px;color:var(--text3);margin-top:2px;letter-spacing:0.5px}
+.sk-list{display:flex;flex-direction:column;gap:9px}
+.sk-row{display:flex;align-items:center;gap:7px}
+.sk-nm{font-size:9px;font-weight:600;color:var(--text2);width:82px;flex-shrink:0}
+.sk-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.sk-fill{height:100%;border-radius:2px;transition:width 0.9s var(--ease)}
+.sk-pct{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);width:20px;text-align:right}
+.tl-wrap{display:flex;flex-direction:column}
+.tl-item{display:flex;gap:9px;padding-bottom:11px;position:relative}
+.tl-item::before{content:'';position:absolute;left:5px;top:17px;width:1px;height:calc(100% - 8px);background:var(--border)}
+.tl-item:last-child::before{display:none}
+.tl-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;border:2px solid;margin-top:2px}
+.tl-dot.done{background:var(--green);border-color:var(--green)}
+.tl-dot.curr{background:var(--blue);border-color:var(--blue)}
+.tl-dot.pend{background:var(--surface3);border-color:var(--border2)}
+.tl-nm{font-size:10px;font-weight:600;color:var(--text)}
+.tl-mt{font-size:9px;color:var(--text3);margin-top:1px}
 
-        /* --- Question Card --- */
-        .question-card {
-            background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.05));
-            border: 1px solid rgba(99,102,241,0.3);
-            padding: 32px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-        .question-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-            background: var(--primary-gradient);
-        }
-        .question-type { font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-        .question-text { font-size: 1.35rem; font-weight: 700; line-height: 1.4; }
+/* ── QUESTION CARD ── */
+.phase-strip{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.phase-pill{padding:3px 11px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border:1px solid}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.5)}
+.q-head{padding:18px 26px 0;display:flex;align-items:center;gap:11px}
+.q-badge{width:30px;height:30px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,var(--blue),#6050f0);display:grid;place-items:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:#fff}
+.q-meta{flex:1}
+.q-phase{font-size:9px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
+.diff-pips{display:flex;gap:3px;margin-top:4px}
+.diff-pip{width:11px;height:3px;border-radius:2px;background:var(--border2)}
+.diff-pip.lit{background:var(--amber)}
+.q-body{padding:16px 26px 24px}
+.q-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;line-height:1.4;letter-spacing:-0.3px;margin-bottom:9px}
+.q-hint{font-size:12px;color:var(--text2);line-height:1.65;padding:9px 13px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--border2);margin-bottom:15px}
+.resp-ta{width:100%;min-height:114px;padding:13px 15px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:10px;font-family:'Instrument Sans',sans-serif;font-size:14px;color:var(--text);line-height:1.7;resize:none;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+.resp-ta:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(64,128,255,0.1)}
+.resp-ta::placeholder{color:var(--text3);font-style:italic}
+.resp-ta:disabled{opacity:0.5;cursor:not-allowed}
+.resp-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.wc{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.resp-btns{display:flex;gap:8px}
 
-        /* --- Input Modes --- */
-        .mode-switcher { display: flex; gap: 8px; margin-bottom: 20px; }
-        .mode-btn {
-            flex: 1; padding: 12px; border-radius: var(--radius-sm);
-            border: 1px solid var(--border); background: var(--surface-2);
-            cursor: pointer; font-weight: 600; transition: var(--transition);
-        }
-        .mode-btn.active {
-            background: var(--primary); border-color: var(--primary); color: white;
-        }
+/* ── EVAL CARD ── */
+.eval-card{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--blue);border-radius:16px;padding:22px 26px}
+.eval-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.eval-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.eval-meta{font-size:9px;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace}
+.eval-sc-n{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1;text-align:right}
+.eval-sc-d{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;text-align:right}
+.dim-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.dim-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.dim-nm{font-size:11px;font-weight:600;color:var(--text)}
+.dim-sc{font-size:10px;font-family:'JetBrains Mono',monospace}
+.dim-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.dim-fill{height:100%;border-radius:2px;transition:width 0.9s var(--ease)}
+.dim-fb{font-size:10px;color:var(--text3);line-height:1.5}
+.eval-sum{font-size:12px;color:var(--text2);line-height:1.65;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:11px}
+.eval-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.etag{padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700}
+.etag-g{background:rgba(31,200,116,0.1);color:var(--green);border:1px solid rgba(31,200,116,0.25)}
+.etag-a{background:rgba(240,160,32,0.1);color:var(--amber);border:1px solid rgba(240,160,32,0.2)}
+.next-row{display:flex;justify-content:flex-end}
+.ai-spin{display:flex;align-items:center;gap:11px;padding:13px 16px;background:rgba(64,128,255,0.06);border:1px solid rgba(64,128,255,0.14);border-radius:10px;font-size:12px;color:var(--blue2)}
+.spinner{width:15px;height:15px;flex-shrink:0;border:2px solid rgba(64,128,255,0.2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite}
 
-        /* --- Text Input --- */
-        .text-input-area { position: relative; }
-        textarea.answer-box {
-            min-height: 140px; resize: vertical;
-            font-family: inherit; font-size: 1.05rem;
-            line-height: 1.6;
-        }
-        .hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+/* ── LOADING ── */
+.loading-cnt{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.rings{position:relative;width:68px;height:68px}
+.ring{position:absolute;border-radius:50%;border:2px solid transparent}
+.r1{inset:0;border-top-color:var(--blue);animation:spin 0.9s linear infinite}
+.r2{inset:9px;border-top-color:var(--purple);animation:spin 1.3s linear infinite reverse}
+.r3{inset:18px;border-top-color:var(--green);animation:spin 0.7s linear infinite}
+.loading-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+.loading-sub{font-size:13px;color:var(--text2);max-width:280px}
 
-        /* --- Voice Input --- */
-        .voice-stage {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 40px 20px;
-            background: var(--surface-2);
-            border-radius: var(--radius-lg);
-            border: 1px dashed var(--border);
-        }
-        .mic-btn {
-            width: 90px; height: 90px; border-radius: 50%;
-            border: none; background: var(--danger);
-            color: white; font-size: 2.5rem;
-            cursor: pointer; box-shadow: 0 0 30px rgba(239,68,68,0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .mic-btn:hover { transform: scale(1.05); }
-        .mic-btn:active { transform: scale(0.95); }
-        .mic-btn.rec {
-            animation: pulse-red 1.2s infinite;
-            background: #000;
-        }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(239,68,68,0); }
-            100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
-        }
-        .waveform {
-            display: flex; gap: 4px; height: 50px; align-items: center;
-            margin: 20px 0; opacity: 0; transition: opacity 0.3s;
-        }
-        .waveform.active { opacity: 1; }
-        .bar {
-            width: 5px; background: var(--accent);
-            border-radius: 3px;
-            animation: wave 1s infinite ease-in-out;
-        }
-        .bar:nth-child(1) { height: 20%; animation-delay: 0s; }
-        .bar:nth-child(2) { height: 40%; animation-delay: 0.1s; }
-        .bar:nth-child(3) { height: 60%; animation-delay: 0.2s; }
-        .bar:nth-child(4) { height: 30%; animation-delay: 0.3s; }
-        .bar:nth-child(5) { height: 50%; animation-delay: 0.4s; }
-        @keyframes wave {
-            0%, 100% { transform: scaleY(0.5); }
-            50% { transform: scaleY(1.2); }
-        }
-        .voice-status { font-size: 1rem; font-weight: 600; color: var(--text-muted); margin-top: 8px; }
+/* ── LOADING OVERLAY (answer submission) ── */
+#loading-overlay{position:fixed;inset:0;top:58px;z-index:150;display:flex;align-items:center;justify-content:center;
+  background:rgba(7,9,13,0.92);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s ease}
+#loading-overlay.active{opacity:1;pointer-events:all}
+.loading-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.loading-header{font-size:1rem;font-weight:700;color:var(--text2);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.loading-bar-track{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:24px}
+.loading-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--accent,#6050f0));animation:indeterminate 1.8s ease-in-out infinite;width:40%}
+@keyframes indeterminate{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+.loading-steps{display:flex;flex-direction:column;gap:14px}
+.ls-step{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:var(--radius-md,10px);border:1px solid transparent;opacity:0.3;transition:all 0.3s ease}
+.ls-step.ls-active{opacity:1;background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.25)}
+.ls-step.ls-done{opacity:0.7}
+.ls-icon{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:grid;place-items:center;font-size:1rem;flex-shrink:0;transition:all 0.3s}
+.ls-step.ls-active .ls-icon{background:rgba(99,102,241,0.15);border-color:var(--blue)}
+.ls-step.ls-done .ls-icon{background:rgba(31,200,116,0.15);border-color:var(--green)}
+.ls-title{font-size:0.9rem;font-weight:700;color:var(--text)}
+.ls-desc{font-size:0.78rem;color:var(--text3);margin-top:1px}
+.spin{display:inline-block;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-        /* --- Action Button --- */
-        .action-bar { margin-top: 24px; display: flex; gap: 12px; }
-        .btn-block { width: 100%; }
+/* ── VOICE BUTTON ── */
+.voice-btn{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--border2);background:var(--surface2);
+  display:grid;place-items:center;font-size:1.1rem;cursor:pointer;transition:all 0.2s ease;flex-shrink:0}
+.voice-btn:hover{border-color:var(--red);background:rgba(232,60,60,0.08)}
+.voice-btn.recording{border-color:var(--red);background:rgba(232,60,60,0.15);animation:pulse 1.2s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,60,60,0.3)}50%{box-shadow:0 0 0 8px rgba(232,60,60,0)}}
+.voice-status{font-size:10px;color:var(--red);font-weight:600;display:flex;align-items:center;gap:5px}
+.voice-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1s ease infinite}
 
-        /* --- Loading / Evaluating --- */
-        .evaluating-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(11,14,20,0.9); backdrop-filter: blur(5px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .evaluating-overlay.active { opacity: 1; pointer-events: all; }
-        .spinner {
-            width: 60px; height: 60px; border: 4px solid var(--surface-3);
-            border-top-color: var(--primary); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .eval-text { margin-top: 16px; font-size: 1.1rem; font-weight: 600; color: var(--text-muted); }
+/* ── RATIONALE CHIP ── */
+.rationale-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(6,182,212,0.08);
+  border:1px solid rgba(6,182,212,0.25);border-radius:20px;font-size:0.78rem;font-weight:600;color:#06b6d4;
+  margin-top:14px;animation:fadeIn 0.5s ease;max-width:100%}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-        /* --- Feedback Card --- */
-        .feedback-card {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 24px;
-            margin-top: 24px;
-            animation: slideUp 0.5s ease;
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .score-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
-        .score-number {
-            font-size: 3rem; font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .score-total { font-size: 1.5rem; color: var(--text-muted); font-weight: 600; }
-        .feedback-text { font-size: 1.05rem; line-height: 1.6; margin-bottom: 16px; color: var(--text); }
-        .tags { display: flex; flex-wrap: wrap; gap: 8px; }
-        .tag {
-            padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
-            background: var(--surface-3); border: 1px solid var(--border);
-        }
-        .tag.strength { border-color: var(--success); color: var(--success); background: rgba(16,185,129,0.1); }
-        .tag.weakness { border-color: var(--warning); color: var(--warning); background: rgba(245,158,11,0.1); }
-        .tag.probe { border-color: var(--accent); color: var(--accent); background: rgba(6,182,212,0.1); }
+/* ── REPORT ── */
+.rep-inner{max-width:960px;margin:0 auto}
+.rep-hero{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.rep-eye{font-size:9px;letter-spacing:3px;font-weight:700;text-transform:uppercase;color:var(--blue);margin-bottom:9px}
+.rep-title{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-1.2px;margin-bottom:7px}
+.rep-meta{font-size:12px;color:var(--text2);line-height:1.6}
+.suit-badge{display:inline-block;padding:6px 18px;border-radius:6px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-top:10px}
+.ss{background:rgba(31,200,116,0.12);color:var(--green);border:1px solid rgba(31,200,116,0.3)}
+.sg{background:rgba(64,128,255,0.1);color:var(--blue2);border:1px solid rgba(64,128,255,0.25)}
+.sf{background:rgba(240,160,32,0.1);color:var(--amber);border:1px solid rgba(240,160,32,0.2)}
+.sc-circle{width:110px;height:110px;border-radius:50%;background:conic-gradient(var(--blue) var(--deg,0deg),var(--border) 0deg);display:grid;place-items:center;flex-shrink:0}
+.sc-in{width:82px;height:82px;border-radius:50%;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sc-n{font-family:'Syne',sans-serif;font-size:26px;font-weight:800}
+.sc-l{font-size:8px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.r-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
+.r-card-full{grid-column:1/-1}
+.r-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px}
+.ps-row{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.ps-nm{font-size:10px;font-weight:600;width:120px;flex-shrink:0}
+.ps-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.ps-fill{height:100%;border-radius:3px}
+.ps-sc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);width:26px;text-align:right}
+.qb-list{display:flex;flex-direction:column;gap:9px}
+.qb-item{padding:12px 14px;background:var(--surface2);border-radius:9px;border-left:3px solid var(--border2)}
+.qb-item.h{border-left-color:var(--green)}.qb-item.m{border-left-color:var(--amber)}.qb-item.l{border-left-color:var(--red)}
+.qb-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.qb-q{font-size:11px;font-weight:600;flex:1;padding-right:10px}
+.qb-sc{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;flex-shrink:0}
+.qb-sc.h{color:var(--green)}.qb-sc.m{color:var(--amber)}.qb-sc.l{color:var(--red)}
+.qb-fb{font-size:10px;color:var(--text3);line-height:1.5}
+.rec-box{background:linear-gradient(135deg,rgba(64,128,255,0.07),rgba(90,80,240,0.04));border:1px solid rgba(64,128,255,0.18);border-radius:14px;padding:26px;margin-top:18px}
+.rec-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:9px}
+.rec-text{font-size:13px;color:var(--text2);line-height:1.75;white-space:pre-line}
+.rec-next{margin-top:12px;padding:9px 13px;background:rgba(64,128,255,0.1);border-radius:6px;border-left:3px solid var(--blue);font-size:11px;color:var(--blue2)}
+.rec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.rec-chip{padding:3px 11px;border-radius:4px;font-size:9px;font-weight:700;background:rgba(31,200,116,0.08);color:var(--green);border:1px solid rgba(31,200,116,0.2)}
+.rep-actions{display:flex;gap:10px;margin-top:22px;padding-bottom:20px}
 
-        /* --- Results Dashboard --- */
-        .results-header { text-align: center; margin-bottom: 32px; }
-        .results-title { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
-        .results-sub { color: var(--text-muted); }
+/* ── AUDIO PLAYER ── */
+.audio-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-top:10px}
+.audio-bar-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border2);background:var(--surface3);
+  display:grid;place-items:center;font-size:0.85rem;cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.audio-bar-btn:hover{border-color:var(--blue);color:var(--blue)}
+.audio-bar-bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.audio-bar-fill{height:100%;background:var(--blue);border-radius:2px;transition:width 0.1s linear;width:0%}
+.audio-bar-time{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;width:36px;text-align:right}
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
-        .stat-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 24px;
-            text-align: center;
-            transition: var(--transition);
-        }
-        .stat-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .stat-value {
-            font-size: 2.5rem; font-weight: 800; margin-bottom: 4px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .stat-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 600; }
-
-        .qa-list { display: flex; flex-direction: column; gap: 16px; }
-        .qa-item {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 20px;
-        }
-        .qa-q { font-weight: 700; color: var(--accent); margin-bottom: 8px; font-size: 1.1rem; }
-        .qa-a { color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; font-style: italic; }
-        .qa-meta { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-muted); }
-
-        /* --- Confetti (simple CSS) --- */
-        .confetti {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1000;
-        }
-        .confetti-piece {
-            position: absolute; width: 10px; height: 10px;
-            background: var(--primary); animation: confetti-fall 3s linear forwards;
-        }
-        @keyframes confetti-fall {
-            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* --- Responsive --- */
-        @media(max-width: 640px) {
-            .card { padding: 24px; }
-            .question-text { font-size: 1.1rem; }
-            .stats-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+@media(max-width:960px){.int-grid{grid-template-columns:1fr}.int-left,.int-right{display:none}.rep-grid{grid-template-columns:1fr}.rep-hero{grid-template-columns:1fr}.sc-circle{display:none}.role-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.role-grid{grid-template-columns:1fr}.two-col{grid-template-columns:1fr}.card{padding:28px 22px}.int-main{padding:20px 16px}}
+</style>
 </head>
 <body>
+<div class="ambient"></div>
+<div class="grid-bg"></div>
 
-<header>
-    <div class="brand">🤖 AI Interview Agent</div>
-    <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:0.8rem;color:var(--text-muted)">System Ready</span>
-        <div class="status-dot"></div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">N</div>
+    <span class="brand-name">Nexus<span class="brand-dot">Hire</span></span>
+  </div>
+  <div class="step-pills" id="step-pills">
+    <div class="step-pill active" id="sp1"><div class="step-num">1</div>Resume</div>
+    <div class="pill-sep" id="ps1"></div>
+    <div class="step-pill" id="sp2"><div class="step-num">2</div>Details</div>
+    <div class="pill-sep" id="ps2"></div>
+    <div class="step-pill" id="sp3"><div class="step-num">3</div>Role</div>
+    <div class="pill-sep" id="ps3"></div>
+    <div class="step-pill" id="sp4"><div class="step-num">4</div>Interview</div>
+    <div class="pill-sep" id="ps4"></div>
+    <div class="step-pill" id="sp5"><div class="step-num">5</div>Report</div>
+  </div>
+</div>
+<div class="prog-line"><div class="prog-fill" id="prog-fill"></div></div>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loading-card">
+    <div class="loading-header"><span class="spin">⚙️</span> Processing your answer...</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+    <div class="loading-steps">
+      <div class="ls-step" id="ls-1">
+        <div class="ls-icon" id="ls-icon-1">📤</div>
+        <div><div class="ls-title">Answer Submitted</div><div class="ls-desc">Sending your response to the AI interviewer</div></div>
+      </div>
+      <div class="ls-step" id="ls-2">
+        <div class="ls-icon" id="ls-icon-2">🧠</div>
+        <div><div class="ls-title">AI Evaluating &amp; Generating Next Question</div><div class="ls-desc">Scoring your answer and crafting a personalised follow-up</div></div>
+      </div>
+      <div class="ls-step" id="ls-3">
+        <div class="ls-icon" id="ls-icon-3">🔊</div>
+        <div><div class="ls-title">Preparing Feedback &amp; Audio</div><div class="ls-desc">Finalising evaluation and synthesising voice</div></div>
+      </div>
     </div>
-</header>
-
-<div id="app">
-    <!-- ================= VIEW: SETUP WIZARD ================= -->
-    <div id="view-setup" class="view active">
-        <div class="card">
-            <!-- Stepper -->
-            <div class="wizard-steps">
-                <div class="step active" data-step="1">
-                    <div class="step-circle">1</div>
-                    <div class="step-label">Role & Language</div>
-                </div>
-                <div class="step" data-step="2">
-                    <div class="step-circle">2</div>
-                    <div class="step-label">Position & Resume</div>
-                </div>
-                <div class="step" data-step="3">
-                    <div class="step-circle">3</div>
-                    <div class="step-label">Review & Start</div>
-                </div>
-            </div>
-
-            <!-- Step 1: Role & Language -->
-            <div class="wizard-content" id="step-1">
-                <h2 style="margin-bottom: 24px;">Select Interview Parameters</h2>
-                
-                <div class="form-group">
-                    <label>Interview Role</label>
-                    <div class="role-grid">
-                        <div class="role-card" data-value="backend" onclick="selectRole(this)">
-                            <div class="role-icon">⚙️</div>
-                            <div>Backend</div>
-                        </div>
-                        <div class="role-card" data-value="frontend" onclick="selectRole(this)">
-                            <div class="role-icon">🎨</div>
-                            <div>Frontend</div>
-                        </div>
-                        <div class="role-card" data-value="pm" onclick="selectRole(this)">
-                            <div class="role-icon">📊</div>
-                            <div>Product Manager</div>
-                        </div>
-                        <div class="role-card" data-value="data_science" onclick="selectRole(this)">
-                            <div class="role-icon">📈</div>
-                            <div>Data Science</div>
-                        </div>
-                        <div class="role-card" data-value="devops" onclick="selectRole(this)">
-                            <div class="role-icon">☁️</div>
-                            <div>DevOps</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Interview Language</label>
-                    <select id="inp-lang">
-                        <option value="en-US">English (United States)</option>
-                        <option value="es-ES">Spanish (Spain)</option>
-                        <option value="fr-FR">French (France)</option>
-                        <option value="de-DE">German (Germany)</option>
-                        <option value="hi-IN">Hindi (India)</option>
-                        <option value="zh-CN">Chinese (Mandarin)</option>
-                        <option value="ja-JP">Japanese (Japan)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Step 2: Position & Resume -->
-            <div class="wizard-content hidden" id="step-2">
-                <h2 style="margin-bottom: 24px;">Position Details & Resume</h2>
-                
-                <div class="form-group">
-                    <label>Position Title</label>
-                    <input type="text" id="inp-position" placeholder="e.g. Senior Full Stack Engineer">
-                </div>
-
-                <div class="form-group">
-                    <label>Upload Resume (PDF)</label>
-                    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('inp-pdf').click()">
-                        <div class="upload-icon">📄</div>
-                        <div><strong>Click to upload</strong> or drag and drop</div>
-                        <div style="font-size:0.85rem;color:var(--text-muted);margin-top:8px">PDF only • Max 10MB • PII will be anonymized</div>
-                        <input type="file" id="inp-pdf" accept=".pdf" class="hidden" onchange="handleFile(this.files[0])">
-                        <div id="file-display" class="file-name"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 3: Review -->
-            <div class="wizard-content hidden" id="step-3">
-                <h2 style="margin-bottom: 24px;">Review & Confirm</h2>
-                <div style="background:var(--surface-2); padding:20px; border-radius:var(--radius-sm); border:1px solid var(--border);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                        <span style="color:var(--text-muted)">Role:</span>
-                        <strong id="rev-role">-</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                        <span style="color:var(--text-muted)">Language:</span>
-                        <strong id="rev-lang">-</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                        <span style="color:var(--text-muted)">Position:</span>
-                        <strong id="rev-position">-</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span style="color:var(--text-muted)">Resume:</span>
-                        <strong id="rev-resume">Not uploaded</strong>
-                    </div>
-                </div>
-                <p style="margin-top:16px; font-size:0.9rem; color:var(--text-muted);">
-                    🚀 Ready to start? The AI will ask up to 7 questions with dynamic probing on low scores.
-                </p>
-            </div>
-
-            <!-- Wizard Footer -->
-            <div class="wizard-footer">
-                <button class="btn btn-ghost" id="btn-prev" onclick="changeStep(-1)" disabled>Back</button>
-                <button class="btn btn-primary" id="btn-next" onclick="changeStep(1)">Next Step</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= VIEW: INTERVIEW ================= -->
-    <div id="view-interview" class="view">
-        <div class="interview-container">
-            <!-- Progress Header -->
-            <div class="progress-header">
-                <div class="progress-text">
-                    Question <span id="current-q">1</span> / <span id="total-q">7</span>
-                    <span id="probe-badge" class="tag probe hidden" style="margin-left:12px;">🔍 Deep Dive</span>
-                </div>
-                <div class="timer-wrapper">
-                    <svg class="timer-svg" width="70" height="70">
-                        <circle class="timer-circle" cx="35" cy="35" r="35"></circle>
-                        <circle class="timer-circle-progress" id="timer-progress" cx="35" cy="35" r="35"></circle>
-                    </svg>
-                    <div class="timer-text" id="timer-text">02:00</div>
-                </div>
-            </div>
-
-            <!-- Question -->
-            <div class="question-card">
-                <div class="question-type" id="q-type">Main Question</div>
-                <div class="question-text" id="q-text">Loading question...</div>
-            </div>
-
-            <!-- Input Mode Switcher -->
-            <div class="mode-switcher">
-                <button class="mode-btn active" onclick="setInputMode('text')">✍️ Text Answer</button>
-                <button class="mode-btn" onclick="setInputMode('voice')">🎙️ Voice Answer</button>
-            </div>
-
-            <!-- Text Input Panel -->
-            <div id="panel-text" class="text-input-area">
-                <textarea class="answer-box" id="txt-answer" placeholder="Type your answer here... (Press Ctrl+Enter to submit)"></textarea>
-                <div class="hint">💡 Be specific, use metrics, and structure your response clearly.</div>
-                <div class="action-bar">
-                    <button class="btn btn-primary btn-block" onclick="submitAnswer()">Submit Answer →</button>
-                </div>
-            </div>
-
-            <!-- Voice Input Panel -->
-            <div id="panel-voice" class="voice-stage hidden">
-                <div class="waveform" id="waveform">
-                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-                </div>
-                <button class="mic-btn" id="btn-mic" onclick="toggleRecording()">🎙</button>
-                <div class="voice-status" id="voice-status">Tap the microphone to start speaking</div>
-                <button class="btn btn-primary btn-block mt-4" id="btn-send-voice" disabled onclick="sendVoiceRecording()">
-                    Send Voice Answer →
-                </button>
-            </div>
-
-            <!-- Feedback (appears after submission) -->
-            <div id="panel-feedback"></div>
-        </div>
-    </div>
-
-    <!-- ================= VIEW: RESULTS ================= -->
-    <div id="view-results" class="view">
-        <div class="results-header">
-            <h2 class="results-title">Interview Complete 🎉</h2>
-            <div class="results-sub">Here is your comprehensive performance breakdown</div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="res-avg">0.0</div>
-                <div class="stat-label">Average Score</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="res-fit">0%</div>
-                <div class="stat-label">Fit Score</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="res-rec" style="font-size:1.5rem;">--</div>
-                <div class="stat-label">Recommendation</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 style="margin-bottom: 20px;">Detailed Q&A Breakdown</h3>
-            <div class="qa-list" id="qa-details"></div>
-        </div>
-
-        <div class="action-bar" style="margin-top: 24px;">
-            <button class="btn btn-secondary" onclick="downloadReport('csv')">⬇ Export CSV</button>
-            <button class="btn btn-secondary" onclick="downloadReport('json')">⬇ Export JSON</button>
-            <button class="btn btn-primary btn-block" style="margin-top: 12px;" onclick="location.reload()">Start New Interview</button>
-        </div>
-    </div>
+  </div>
 </div>
 
-<!-- Evaluating Overlay -->
-<div class="evaluating-overlay" id="eval-overlay">
-    <div class="spinner"></div>
-    <div class="eval-text" id="eval-text">Analyzing your response...</div>
+<!-- STAGE -->
+<div id="stage">
+
+<!-- S1: UPLOAD -->
+<div class="scene active" id="scene-upload">
+  <div class="card">
+    <div class="eyebrow">Step 1 of 4</div>
+    <div class="card-title">Upload your <span class="hl">Resume</span></div>
+    <div class="card-sub">Drop your file and our AI personalises every question to your background.</div>
+    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleFile(this.files[0])"/>
+      <div class="upload-ico" id="up-ico">📄</div>
+      <div class="upload-title" id="up-title">Drop your resume here</div>
+      <div class="upload-hint" id="up-hint">or click to browse files</div>
+      <div class="fmt-chips"><span class="fmt-chip">.pdf</span><span class="fmt-chip">.doc</span><span class="fmt-chip">.docx</span><span class="fmt-chip">.txt</span></div>
+    </div>
+    <div class="file-row" id="file-row" style="display:none">
+      <div class="file-ico">📎</div>
+      <div><div class="file-name" id="file-name"></div><div class="file-sz" id="file-sz"></div></div>
+      <button class="file-rm" onclick="removeFile()">✕</button>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-up" onclick="goScene('details')" disabled>Continue &nbsp;→</button>
+  </div>
+</div>
+
+<!-- S2: DETAILS -->
+<div class="scene" id="scene-details">
+  <div class="card">
+    <div class="eyebrow">Step 2 of 4</div>
+    <div class="card-title">Your <span class="hl">Details</span></div>
+    <div class="card-sub">Just your name and experience — takes 5 seconds.</div>
+    <div class="two-col" style="margin-bottom:0">
+      <div class="field">
+        <label class="field-label">Full Name</label>
+        <input class="field-input" id="cand-name" placeholder="e.g. Riya Sharma" oninput="checkDetails()"/>
+      </div>
+      <div class="field">
+        <label class="field-label">Experience</label>
+        <select class="field-select" id="cand-exp">
+          <option value="0-2">0–2 yrs · Junior</option>
+          <option value="3-5" selected>3–5 yrs · Mid-level</option>
+          <option value="6-10">6–10 yrs · Senior</option>
+          <option value="10+">10+ yrs · Principal</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" style="padding:13px 18px" onclick="goScene('upload')">← Back</button>
+      <button class="btn btn-primary" id="btn-det" onclick="goScene('role')" disabled>Continue &nbsp;→</button>
+    </div>
+  </div>
+</div>
+
+<!-- S3: ROLE -->
+<div class="scene" id="scene-role">
+  <div class="card card-wide">
+    <div class="eyebrow">Step 3 of 4</div>
+    <div class="card-title">Pick your <span class="hl">Role</span></div>
+    <div class="card-sub" style="margin-bottom:18px">Questions will be tailored to your chosen role and experience.</div>
+    <div class="role-grid" id="role-grid"></div>
+    <div class="field" style="margin-bottom:0">
+      <label class="field-label">Job Description <span style="color:var(--text3);font-weight:400;font-size:10px;letter-spacing:0;text-transform:none">(optional)</span></label>
+      <textarea class="field-ta" id="jd-input" placeholder="Paste JD here for ultra-targeted questions…" style="min-height:68px"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" style="padding:13px 18px" onclick="goScene('details')">← Back</button>
+      <button class="btn btn-primary" id="btn-role" onclick="startInterview()" disabled>🚀 &nbsp;Start Interview</button>
+    </div>
+  </div>
+</div>
+
+<!-- S4: INTERVIEW -->
+<div class="scene scene-interview" id="scene-interview">
+  <div class="int-grid">
+    <div class="int-side int-left">
+      <div><div class="sid-label">Candidate</div>
+        <div class="cand-card">
+          <div class="cand-top"><div class="cand-av" id="sid-av">?</div>
+            <div><div class="cand-name" id="sid-name">—</div><div class="cand-role" id="sid-role">—</div></div>
+          </div>
+          <div class="info-row"><span class="ir-l">Experience</span><span class="ir-v" id="sid-exp">—</span></div>
+          <div class="info-row"><span class="ir-l">Resume</span><span class="ir-v" id="sid-res">—</span></div>
+          <div class="info-row"><span class="ir-l">Session</span><span class="ir-v" id="sid-sess" style="font-size:7px;max-width:80px;overflow:hidden;text-overflow:ellipsis">—</span></div>
+        </div>
+      </div>
+      <div><div class="sid-label">Live Score</div>
+        <div class="score-box">
+          <div class="score-big" id="ls-num">—</div><div class="score-den">/100</div>
+          <div class="score-lbl">Cumulative</div>
+          <div class="score-bar"><div class="score-fill" id="ls-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div><div class="sid-label">Progress</div><div class="q-list" id="q-list"></div></div>
+    </div>
+    <div class="int-main" id="int-main"></div>
+    <div class="int-side int-right">
+      <div><div class="sid-label">Metrics</div>
+        <div class="met-row">
+          <div class="met-box"><div class="met-val" id="m-ans">0</div><div class="met-lbl">Answered</div></div>
+          <div class="met-box"><div class="met-val" id="m-avg">—</div><div class="met-lbl">Avg /10</div></div>
+        </div>
+      </div>
+      <div><div class="sid-label">Timeline</div><div class="tl-wrap" id="tl-wrap"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- S5: REPORT LOADING -->
+<div class="scene" id="scene-loading">
+  <div class="loading-cnt">
+    <div class="rings"><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div></div>
+    <div class="loading-title">Generating Report…</div>
+    <div class="loading-sub">Synthesising your performance across all phases</div>
+  </div>
+</div>
+
+<!-- S6: REPORT -->
+<div class="scene scene-report" id="scene-report">
+  <div class="rep-inner" id="rep-inner"></div>
+</div>
+
 </div>
 
 <script>
-/* ==========================================================
-   CONFIGURATION & STATE
-   ========================================================== */
-const CONFIG = {
-    API_BASE: '', // e.g., 'http://localhost:5000/api' – leave blank for demo mode
-    MAX_QUESTIONS: 7,
-    PROBE_THRESHOLD: 6.0,
-    TIMEOUT: 120, // seconds
-    WARNING: 90
+  /* ═══════════════════════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════════════════════ */
+// Automatically uses localhost in dev, deployed URL in production
+const API_BASE = (
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+) ? 'http://localhost:8000/api'
+  : window.location.origin + '/api';
+
+/* ═══════════════════════════════════════════════════════════════
+   ROLES
+   ═══════════════════════════════════════════════════════════════ */
+const ROLES = [
+  {id:'backend',      emoji:'⚙️', name:'Backend Engineer',   dept:'Engineering',    tags:['APIs','Databases','Scalability']},
+  {id:'frontend',     emoji:'🎨', name:'Frontend Engineer',   dept:'Engineering',    tags:['React','Performance','UI/UX']},
+  {id:'data_science', emoji:'📊', name:'Data Scientist',      dept:'Analytics',      tags:['ML','Python','Statistics']},
+  {id:'product_mgr',  emoji:'🧭', name:'Product Manager',     dept:'Product',        tags:['Roadmap','Metrics','GTM']},
+  {id:'devops',       emoji:'🔧', name:'DevOps / SRE',        dept:'Infrastructure', tags:['CI/CD','Kubernetes','AWS']},
+  {id:'eng_manager',  emoji:'👥', name:'Engineering Manager',  dept:'Leadership',     tags:['People','Delivery','Strategy']},
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+const S = {
+  name:'', exp:'3-5', file:null,
+  roleId:null, roleName:'',
+  sessionId:null,
+  questions:[],       // [{question, rationale}, ...]
+  evaluations:[],     // [evalObj or null, ...]
+  currentIdx:0,
+  isProcessing:false,
+  lastAnswer:null,
+  // Voice
+  mediaRecorder:null,
+  audioChunks:[],
+  isRecording:false,
+  audioBlob:null,
+  // Audio player
+  audioPlayer:null,
+  audioInterval:null,
+  report:null,
+  // Buffered from backend response
+  _nextQData:null,
 };
 
-const state = {
-    step: 1,
-    config: { role: 'backend', language: 'en-US', position: '', resume: null },
-    questions: [],
-    currentIdx: 0,
-    totalAsked: 0,
-    probeCount: 0,
-    results: [],
-    inputMode: 'text',
-    isRecording: false,
-    mediaRecorder: null,
-    audioBlob: null,
-    timeLeft: CONFIG.TIMEOUT,
-    timerInterval: null,
-    demo: !CONFIG.API_BASE
-};
+/* ═══════════════════════════════════════════════════════════════
+   UTILS
+   ═══════════════════════════════════════════════════════════════ */
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function scC(s){ return s>=75?'var(--green)':s>=50?'var(--amber)':'var(--red)'; }
+function fmtB(b){ if(b<1024)return b+' B'; if(b<1048576)return (b/1024).toFixed(1)+' KB'; return (b/1048576).toFixed(1)+' MB'; }
 
-/* ==========================================================
-   SETUP WIZARD LOGIC
-   ========================================================== */
-function selectRole(el) {
-    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    state.config.role = el.dataset.value;
-    updateReview();
+/* ═══════════════════════════════════════════════════════════════
+   SCENE NAVIGATION
+   ═══════════════════════════════════════════════════════════════ */
+const SCENE_LIST = ['upload','details','role','interview','loading','report'];
+const PILL_STEP  = {upload:1,details:2,role:3,interview:4,loading:4,report:5};
+const PROG_MAP   = {upload:8,details:20,role:36,loading:92,report:100};
+let curScene = 'upload';
+
+function goScene(to){
+  if(curScene===to) return;
+  const fromEl = document.getElementById('scene-'+curScene);
+  const toEl   = document.getElementById('scene-'+to);
+  if(!fromEl||!toEl) return;
+  const forward = SCENE_LIST.indexOf(to) > SCENE_LIST.indexOf(curScene);
+  fromEl.classList.remove('active');
+  fromEl.classList.add(forward?'exit-up':'exit-down');
+  setTimeout(()=>fromEl.classList.remove('exit-up','exit-down'),380);
+  if(!forward){
+    toEl.style.transition='none'; toEl.style.transform='translateY(52px) scale(0.97)'; toEl.style.opacity='0';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ toEl.style.transition=''; toEl.style.transform=''; toEl.style.opacity=''; }));
+  }
+  setTimeout(()=>toEl.classList.add('active'),20);
+  curScene = to;
+  if(PROG_MAP[to]!==undefined) document.getElementById('prog-fill').style.width=PROG_MAP[to]+'%';
+  updatePills(to);
+  if(to==='report') document.getElementById('scene-report').scrollTop=0;
+}
+function updatePills(scene){
+  const active=PILL_STEP[scene]||1;
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('sp'+i), sep=document.getElementById('ps'+i);
+    el.className='step-pill';
+    if(i<active)el.classList.add('done'); else if(i===active)el.classList.add('active');
+    if(sep){sep.className='pill-sep';if(i<active)sep.classList.add('done');}
+  }
 }
 
-function handleFile(file) {
-    if(!file || file.type !== 'application/pdf') return alert('Please upload a PDF file.');
-    state.config.resume = file;
-    document.getElementById('file-display').textContent = `✅ ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-    updateReview();
+/* ═══════════════════════════════════════════════════════════════
+   UPLOAD
+   ═══════════════════════════════════════════════════════════════ */
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+function handleFile(f){
+  if(!f)return;
+  const ok=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','text/plain'];
+  if(!ok.includes(f.type)&&!f.name.match(/\.(pdf|doc|docx|txt)$/i)){alert('Please upload PDF, DOC, DOCX, or TXT.');return;}
+  S.file=f;dz.classList.add('ready');
+  document.getElementById('up-ico').textContent='✅'; document.getElementById('up-title').textContent='Resume uploaded!';
+  document.getElementById('up-hint').textContent='Click to change file'; document.getElementById('file-name').textContent=f.name;
+  document.getElementById('file-sz').textContent=fmtB(f.size); document.getElementById('file-row').style.display='flex';
+  document.getElementById('btn-up').disabled=false;
+}
+function removeFile(){
+  S.file=null;dz.classList.remove('ready');
+  document.getElementById('up-ico').textContent='📄'; document.getElementById('up-title').textContent='Drop your resume here';
+  document.getElementById('up-hint').textContent='or click to browse files'; document.getElementById('file-row').style.display='none';
+  document.getElementById('file-input').value=''; document.getElementById('btn-up').disabled=true;
 }
 
-function updateReview() {
-    document.getElementById('rev-role').textContent = state.config.role.toUpperCase();
-    document.getElementById('rev-lang').textContent = document.getElementById('inp-lang').value;
-    document.getElementById('rev-position').textContent = state.config.position || '-';
-    document.getElementById('rev-resume').textContent = state.config.resume ? state.config.resume.name : 'Not uploaded';
+/* ═══════════════════════════════════════════════════════════════
+   DETAILS
+   ═══════════════════════════════════════════════════════════════ */
+function checkDetails(){ document.getElementById('btn-det').disabled=!document.getElementById('cand-name').value.trim(); }
+
+/* ═══════════════════════════════════════════════════════════════
+   ROLE GRID
+   ═══════════════════════════════════════════════════════════════ */
+document.getElementById('role-grid').innerHTML=ROLES.map(r=>`
+  <div class="role-card" id="rc-${r.id}" onclick="pickRole('${r.id}','${r.name}')">
+    <span class="role-emoji">${r.emoji}</span><div class="role-name">${r.name}</div><div class="role-dept">${r.dept}</div>
+    <div class="role-tags">${r.tags.map(t=>`<span class="role-tag">${t}</span>`).join('')}</div>
+  </div>`).join('');
+function pickRole(id,name){
+  S.roleId=id;S.roleName=name;
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('rc-'+id).classList.add('selected');
+  document.getElementById('btn-role').disabled=false;
 }
 
-function changeStep(delta) {
-    const newStep = state.step + delta;
-    if(newStep < 1 || newStep > 3) return;
-    
-    // Validation
-    if(delta === 1 && state.step === 1) {
-        if(!state.config.role) return alert('Please select a role.');
-        state.config.language = document.getElementById('inp-lang').value;
-    }
-    if(delta === 1 && state.step === 2) {
-        if(!state.config.position.trim()) return alert('Please enter a position title.');
-        if(!state.config.resume) return alert('Please upload your resume PDF.');
-    }
-    if(delta === 1 && state.step === 3) {
-        startInterview();
-        return;
-    }
+/* ═══════════════════════════════════════════════════════════════
+   START INTERVIEW
+   ═══════════════════════════════════════════════════════════════ */
+async function startInterview(){
+  S.name     = document.getElementById('cand-name').value.trim();
+  S.exp      = document.getElementById('cand-exp').value;
+  goScene('loading');
+  document.getElementById('prog-fill').style.width='50%';
 
-    // Update UI
-    document.querySelectorAll('.step').forEach((el, idx) => {
-        const stepNum = idx + 1;
-        el.classList.remove('active', 'completed');
-        if(stepNum < newStep) el.classList.add('completed');
-        else if(stepNum === newStep) el.classList.add('active');
-    });
-    
-    document.querySelectorAll('.wizard-content').forEach((el, idx) => {
-        el.classList.toggle('hidden', idx + 1 !== newStep);
-    });
+  const fd = new FormData();
+  fd.append('pdf',S.file); fd.append('role',S.roleId);
+  fd.append('language','en-US'); fd.append('position',S.roleName);
 
-    // Buttons
-    document.getElementById('btn-prev').disabled = newStep === 1;
-    document.getElementById('btn-next').textContent = newStep === 3 ? 'Start Interview →' : 'Next Step';
-    
-    state.step = newStep;
+  try {
+    const res = await fetch(API_BASE+'/session/start',{method:'POST',body:fd});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail||'Server error '+res.status);
+
+    S.sessionId   = data.session_id;
+    S.questions   = [{question:data.question, rationale:data.rationale||''}];
+    S.evaluations = [];
+    S.currentIdx  = 0;
+
+    await sleep(600);
+    goScene('interview');
+    document.getElementById('prog-fill').style.width='42%';
+    setupSide();
+    renderQ(data.audio_base64);
+  } catch(err){
+    alert('Failed to start: '+err.message);
+    goScene('role');
+  }
 }
 
-/* Drag & Drop for Resume */
-const dropZone = document.getElementById('drop-zone');
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-    e.preventDefault(); dropZone.classList.remove('dragover');
-    handleFile(e.dataTransfer.files[0]);
-});
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════════════════════════ */
+function setupSide(){
+  const ini=S.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
+  document.getElementById('sid-av').textContent=ini;
+  document.getElementById('sid-name').textContent=S.name;
+  document.getElementById('sid-role').textContent=S.roleName;
+  document.getElementById('sid-exp').textContent=S.exp+' yrs';
+  document.getElementById('sid-res').textContent=(S.file?.name||'').slice(0,15)+'…';
+  document.getElementById('sid-sess').textContent=(S.sessionId||'').slice(0,8);
+  refreshSide();
+}
+function refreshSide(){ renderQList(); renderTl(); }
 
-/* ==========================================================
-   INTERVIEW LOGIC
-   ========================================================== */
-async function startInterview() {
-    if(state.demo) {
-        state.questions = generateDemoQuestions(state.config.role);
-    } else {
-        const fd = new FormData();
-        fd.append('role', state.config.role);
-        fd.append('language', state.config.language);
-        fd.append('position', state.config.position);
-        fd.append('pdf', state.config.resume);
-        // ... call API to get questions
-        state.questions = generateDemoQuestions(state.config.role); // replace with real fetch
-    }
-    
-    showView('interview');
-    loadQuestion(0);
+function renderQList(){
+  document.getElementById('q-list').innerHTML=S.questions.map((q,i)=>{
+    const ev=S.evaluations[i];
+    const st=i<S.currentIdx?'done':i===S.currentIdx?'curr':'pend';
+    return `<div class="q-item ${st==='curr'?'curr':''}">
+      <div class="qn ${st}">${st==='done'?'✓':i+1}</div>
+      <div class="qt ${st==='curr'?'curr':''}">${q.question.length>42?q.question.slice(0,42)+'…':q.question}</div>
+      ${ev?`<div class="qs" style="color:${scC(ev.overall*10)}">${ev.overall}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function renderTl(){
+  document.getElementById('tl-wrap').innerHTML=S.questions.map((q,i)=>{
+    const done=i<S.currentIdx, curr=i===S.currentIdx;
+    const st=done?'done':curr?'curr':'pend';
+    const label=S.evaluations[i]?`Score: ${S.evaluations[i].overall}/10`:curr?'In progress':'Upcoming';
+    return `<div class="tl-item"><div class="tl-dot ${st}"></div>
+      <div><div class="tl-nm">Q${i+1}</div><div class="tl-mt">${label}</div></div></div>`;
+  }).join('');
+}
+function liveAvg(){
+  const e=S.evaluations.filter(Boolean);
+  return e.length?(e.reduce((s,x)=>s+x.overall,0)/e.length):null;
+}
+function updMetrics(){
+  const e=S.evaluations.filter(Boolean), avg=liveAvg();
+  document.getElementById('m-ans').textContent=e.length;
+  document.getElementById('m-avg').textContent=avg?avg.toFixed(1):'—';
+  if(avg){document.getElementById('ls-num').textContent=(avg*10).toFixed(0);document.getElementById('ls-fill').style.width=(avg*10)+'%';}
+  document.getElementById('prog-fill').style.width=(42+Math.min(50,Math.round((S.currentIdx/Math.max(1,S.questions.length))*50)))+'%';
+  refreshSide();
 }
 
-function showView(name) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(`view-${name}`).classList.add('active');
-}
+/* ═══════════════════════════════════════════════════════════════
+   RENDER QUESTION
+   ═══════════════════════════════════════════════════════════════ */
+function renderQ(audioB64){
+  // ── RESET all state for fresh question ──
+  S.isProcessing  = false;    // ← THIS IS THE FIX — was never reset
+  S.audioBlob     = null;
+  S.isRecording   = false;
+  S.mediaRecorder = null;
+  S.audioChunks   = [];
 
-function loadQuestion(idx) {
-    if(idx >= state.questions.length || state.totalAsked >= CONFIG.MAX_QUESTIONS) {
-        finishInterview(); return;
-    }
-    
-    const q = state.questions[idx];
-    const isProbe = idx > 0 && state.results[state.currentIdx]?.eval?.overall < CONFIG.PROBE_THRESHOLD;
-    
-    document.getElementById('current-q').textContent = state.totalAsked + 1;
-    document.getElementById('total-q').textContent = CONFIG.MAX_QUESTIONS;
-    document.getElementById('q-type').textContent = isProbe ? 'Deep Dive Question' : 'Main Question';
-    document.getElementById('q-text').textContent = q.question;
-    document.getElementById('probe-badge').classList.toggle('hidden', !isProbe);
-    
-    // Reset inputs
-    document.getElementById('txt-answer').value = '';
-    document.getElementById('panel-feedback').innerHTML = '';
-    document.getElementById('btn-send-voice').disabled = true;
-    state.audioBlob = null;
-    
-    startTimer();
-}
+  // Clean up previous audio
+  if(S.audioPlayer){ S.audioPlayer.pause(); S.audioPlayer=null; }
+  if(S.audioInterval){ clearInterval(S.audioInterval); S.audioInterval=null; }
 
-function startTimer() {
-    clearInterval(state.timerInterval);
-    state.timeLeft = CONFIG.TIMEOUT;
-    updateTimerUI();
-    
-    const circle = document.getElementById('timer-progress');
-    const circumference = 220;
-    const totalTime = CONFIG.TIMEOUT;
-    
-    state.timerInterval = setInterval(() => {
-        state.timeLeft--;
-        updateTimerUI();
-        
-        // Circle progress
-        const offset = circumference - (state.timeLeft / totalTime) * circumference;
-        circle.style.strokeDashoffset = offset;
-        
-        // Color warning
-        if(state.timeLeft <= CONFIG.WARNING) {
-            circle.style.stroke = 'var(--danger)';
-            document.getElementById('timer-text').style.color = 'var(--danger)';
-        } else {
-            circle.style.stroke = 'var(--warning)';
-            document.getElementById('timer-text').style.color = 'inherit';
-        }
-        
-        if(state.timeLeft <= 0) {
-            clearInterval(state.timerInterval);
-            submitAnswer();
-        }
-    }, 1000);
-}
+  const main = document.getElementById('int-main');
+  const q    = S.questions[S.currentIdx];
+  if(!q) return;
+  main.scrollTop = 0;
 
-function updateTimerUI() {
-    const m = Math.floor(state.timeLeft / 60).toString().padStart(2,'0');
-    const s = (state.timeLeft % 60).toString().padStart(2,'0');
-    document.getElementById('timer-text').textContent = `${m}:${s}`;
-}
+  // Fade out
+  main.style.transition='opacity 0.22s ease,transform 0.22s ease';
+  main.style.opacity='0'; main.style.transform='translateY(14px)';
 
-/* ==========================================================
-   INPUT HANDLING (TEXT & VOICE)
-   ========================================================== */
-function setInputMode(mode) {
-    state.inputMode = mode;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById('panel-text').classList.toggle('hidden', mode !== 'text');
-    document.getElementById('panel-voice').classList.toggle('hidden', mode !== 'voice');
-}
-
-/* Text: Ctrl+Enter to submit */
-document.getElementById('txt-answer').addEventListener('keydown', e => {
-    if(e.ctrlKey && e.key === 'Enter') submitAnswer();
-});
-
-/* Voice */
-async function toggleRecording() {
-    if(state.isRecording) {
-        state.mediaRecorder.stop();
-        state.isRecording = false;
-        document.getElementById('btn-mic').classList.remove('rec');
-        document.getElementById('btn-mic').textContent = '🎙';
-        document.getElementById('waveform').classList.remove('active');
-        document.getElementById('voice-status').textContent = "Recording saved. Ready to send.";
-        return;
-    }
-    
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        state.mediaRecorder = new MediaRecorder(stream);
-        const chunks = [];
-        state.mediaRecorder.ondataavailable = e => chunks.push(e.data);
-        state.mediaRecorder.onstop = () => {
-            state.audioBlob = new Blob(chunks, { type: 'audio/wav' });
-            document.getElementById('btn-send-voice').disabled = false;
-            stream.getTracks().forEach(t => t.stop());
-        };
-        state.mediaRecorder.start();
-        state.isRecording = true;
-        document.getElementById('btn-mic').classList.add('rec');
-        document.getElementById('btn-mic').textContent = '⏹';
-        document.getElementById('waveform').classList.add('active');
-        document.getElementById('voice-status').textContent = "Listening... speak clearly";
-    } catch(err) {
-        alert('Microphone access required.');
-    }
-}
-
-function sendVoiceRecording() {
-    if(!state.audioBlob) return;
-    // In demo, fake transcript. In real mode, upload to /transcribe
-    const fakeText = "In my previous project, I implemented a caching layer that reduced database load by 60% and improved response times.";
-    processAnswer(fakeText, true);
-}
-
-/* ==========================================================
-   EVALUATION & PROBING
-   ========================================================== */
-async function submitAnswer() {
-    if(state.inputMode === 'voice') return sendVoiceRecording();
-    
-    const text = document.getElementById('txt-answer').value.trim();
-    if(!text) return alert('Please provide an answer.');
-    processAnswer(text, false);
-}
-
-async function processAnswer(text, isVoice) {
-    clearInterval(state.timerInterval);
-    showEvaluating(true);
-    
-    // Simulate network/processing delay
-    await new Promise(r => setTimeout(r, 1500));
-    
-    const elapsed = CONFIG.TIMEOUT - state.timeLeft;
-    const wordCount = text.split(/\s+/).length;
-    
-    // Evaluation (Demo logic or API call)
-    let evalData = state.demo ? demoEvaluate(text) : await fetchEvaluation(text, isVoice, elapsed, wordCount);
-    
-    state.totalAsked++;
-    state.results.push({
-        question: state.questions[state.currentIdx].question,
-        answer: text,
-        eval: evalData,
-        response_time: elapsed,
-        word_count: wordCount,
-        is_voice: isVoice
-    });
-    
-    showEvaluating(false);
-    renderFeedback(evalData, isVoice);
-    
-    // Dynamic Probe Logic
-    if(evalData.overall < CONFIG.PROBE_THRESHOLD && state.probeCount < 2) {
-        state.probeCount++;
-        setTimeout(() => triggerProbe(text, evalData), 2000);
-    } else {
-        if(state.totalAsked >= CONFIG.MAX_QUESTIONS || state.currentIdx >= state.questions.length - 1) {
-            setTimeout(finishInterview, 3000);
-        } else {
-            setTimeout(() => {
-                state.currentIdx++;
-                loadQuestion(state.currentIdx);
-            }, 3500);
-        }
-    }
-}
-
-function showEvaluating(show) {
-    document.getElementById('eval-overlay').classList.toggle('active', show);
-}
-
-function renderFeedback(ev, isVoice) {
-    const fb = document.getElementById('panel-feedback');
-    fb.innerHTML = `
-        <div class="score-display">
-            <span class="score-number" id="score-anim">0.0</span>
-            <span class="score-total">/ 10</span>
+  setTimeout(()=>{
+    main.innerHTML = `
+      <div class="phase-strip">
+        <span style="font-size:10px;color:var(--text3)">Question ${S.currentIdx+1} — Dynamic Interview</span>
+      </div>
+      <div class="q-card" style="border-top:3px solid var(--blue)">
+        <div class="q-head">
+          <div class="q-badge">${S.currentIdx+1}</div>
+          <div class="q-meta"><div class="q-phase" style="color:var(--blue)">Interview Question</div></div>
         </div>
-        <div class="feedback-text">${ev.feedback}</div>
-        <div class="tags">
-            ${ev.strengths ? ev.strengths.map(s => `<span class="tag strength">✓ ${s}</span>`).join('') : ''}
-            ${ev.weaknesses ? ev.weaknesses.map(w => `<span class="tag weakness">△ ${w}</span>`).join('') : ''}
-        </div>
-    `;
-    fb.classList.remove('hidden');
-    
-    // Animate score number
-    let score = 0;
-    const interval = setInterval(() => {
-        score += 0.2;
-        if(score >= ev.overall) {
-            score = ev.overall;
-            clearInterval(interval);
-        }
-        document.getElementById('score-anim').textContent = score.toFixed(1);
-    }, 50);
-}
-
-function triggerProbe(originalAnswer, prevEval) {
-    const probeQ = state.demo 
-        ? `You mentioned "${originalAnswer.substring(0,30)}...". Can you quantify the impact with specific metrics or outcomes?`
-        : "Follow-up question generated by AI..."; // API call here
-    
-    document.getElementById('q-type').textContent = 'Deep Dive Question';
-    document.getElementById('q-text').textContent = probeQ;
-    document.getElementById('probe-badge').classList.remove('hidden');
-    document.getElementById('panel-feedback').innerHTML = '';
-    document.getElementById('txt-answer').value = '';
-    startTimer();
-}
-
-/* ==========================================================
-   RESULTS & EXPORT
-   ========================================================== */
-function finishInterview() {
-    const scores = state.results.map(r => r.eval.overall);
-    const avg = scores.reduce((a,b)=>a+b,0)/scores.length;
-    const fit = Math.round(avg * 10);
-    const rec = avg >= 7 ? 'HIRE' : 'NO HIRE';
-    
-    document.getElementById('res-avg').textContent = avg.toFixed(1);
-    document.getElementById('res-fit').textContent = `${fit}%`;
-    document.getElementById('res-rec').textContent = rec;
-    document.getElementById('res-rec').style.color = rec === 'HIRE' ? 'var(--success)' : 'var(--danger)';
-    
-    const list = document.getElementById('qa-details');
-    list.innerHTML = state.results.map((r,i) => `
-        <div class="qa-item">
-            <div class="qa-q">Q${i+1}: ${r.question}</div>
-            <div class="qa-a">"${r.answer}"</div>
-            <div class="qa-meta">
-                <span><strong>Score:</strong> ${r.eval.overall.toFixed(1)}/10</span>
-                <span>• ${r.is_voice ? '🎙️ Voice' : '✍️ Text'}</span>
-                <span>• ${r.response_time.toFixed(1)}s</span>
-                <span>• ${r.word_count} words</span>
+        <div class="q-body">
+          <div class="q-text">${q.question}</div>
+          ${q.rationale?`<div class="q-hint">🎯 ${q.rationale}</div>`:''}
+          <textarea class="resp-ta" id="resp-ta" placeholder="Type your answer here… Be specific, use real examples."></textarea>
+          <div class="resp-foot">
+            <span class="wc" id="wc">0 words</span>
+            <div class="resp-btns">
+              <button class="voice-btn" id="voice-btn" onclick="toggleVoice()" title="Record voice answer">🎙️</button>
+              <!-- NOTE: no isLast check — backend decides when done -->
+              <button class="btn btn-primary" id="sub-btn" onclick="submitAnswer()" disabled style="padding:10px 16px;font-size:12px">
+                Submit →
+              </button>
             </div>
+          </div>
         </div>
-    `).join('');
-    
-    window._interviewData = { config: state.config, results: state.results, summary: { avg, fit, rec } };
-    showView('results');
-    
-    if(rec === 'HIRE') createConfetti();
+      </div>
+      ${audioB64?buildAudioPlayer(audioB64):''}
+      <div id="eval-slot"></div>`;
+
+    // Fade in
+    requestAnimationFrame(()=>{
+      main.style.transition='opacity 0.38s var(--ease),transform 0.38s var(--ease)';
+      main.style.opacity='1'; main.style.transform='translateY(0)';
+    });
+
+    // Word count → enable submit at 5+ words
+    const ta=document.getElementById('resp-ta');
+    ta.focus();
+    ta.addEventListener('input',()=>{
+      const w=ta.value.trim().split(/\s+/).filter(Boolean).length;
+      document.getElementById('wc').textContent=w+' words';
+      document.getElementById('sub-btn').disabled=(w<5);
+    });
+  },240);
+
+  // Play TTS (slight delay so DOM is ready)
+  if(audioB64) setTimeout(()=>playAudioBase64(audioB64),300);
 }
 
-function downloadReport(type) {
-    const data = window._interviewData;
-    if(type === 'json') {
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-        downloadBlob(blob, `interview_${Date.now()}.json`);
+/* ═══════════════════════════════════════════════════════════════
+   AUDIO PLAYER (TTS from backend)
+   ═══════════════════════════════════════════════════════════════ */
+function buildAudioPlayer(b64){
+  return `<div class="audio-bar" id="audio-bar">
+    <button class="audio-bar-btn" id="audio-play-btn" onclick="toggleAudioPlayback()">▶️</button>
+    <div class="audio-bar-bar"><div class="audio-bar-fill" id="audio-fill"></div></div>
+    <div class="audio-bar-time" id="audio-time">0:00</div>
+  </div>`;
+}
+function playAudioBase64(b64){
+  if(!b64) return;
+  try{
+    if(S.audioPlayer){ S.audioPlayer.pause(); clearInterval(S.audioInterval); }
+    S.audioPlayer=new Audio('data:audio/mp3;base64,'+b64);
+    const player=S.audioPlayer;
+    const fill=document.getElementById('audio-fill');
+    const timeEl=document.getElementById('audio-time');
+    const btn=document.getElementById('audio-play-btn');
+    player.addEventListener('timeupdate',()=>{
+      if(player.duration&&fill){
+        fill.style.width=(player.currentTime/player.duration*100)+'%';
+        const m=Math.floor(player.currentTime/60);
+        const s=Math.floor(player.currentTime%60).toString().padStart(2,'0');
+        if(timeEl) timeEl.textContent=m+':'+s;
+      }
+    });
+    player.addEventListener('ended',()=>{ if(btn)btn.textContent='▶️'; if(fill)fill.style.width='0%'; });
+    player.play().then(()=>{ if(btn)btn.textContent='⏸️'; }).catch(()=>{});
+  }catch(e){ console.warn('Audio failed:',e); }
+}
+function toggleAudioPlayback(){
+  if(!S.audioPlayer) return;
+  const btn=document.getElementById('audio-play-btn');
+  if(S.audioPlayer.paused){ S.audioPlayer.play().then(()=>{if(btn)btn.textContent='⏸️';}); }
+  else{ S.audioPlayer.pause(); if(btn)btn.textContent='▶️'; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VOICE RECORDING
+   ═══════════════════════════════════════════════════════════════ */
+async function toggleVoice(){
+  if(S.isRecording) stopRecording();
+  else await startRecording();
+}
+async function startRecording(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    S.mediaRecorder=new MediaRecorder(stream,{mimeType:'audio/webm'});
+    S.audioChunks=[]; S.audioBlob=null;
+    S.mediaRecorder.ondataavailable=e=>{if(e.data.size>0)S.audioChunks.push(e.data);};
+    S.mediaRecorder.onstop=()=>{
+      S.audioBlob=new Blob(S.audioChunks,{type:'audio/webm'});
+      stream.getTracks().forEach(t=>t.stop());
+      const wc=document.getElementById('wc');
+      if(wc) wc.textContent='🎙️ Voice recorded ('+fmtB(S.audioBlob.size)+')';
+      document.getElementById('sub-btn').disabled=false;
+    };
+    S.mediaRecorder.start(); S.isRecording=true;
+    const btn=document.getElementById('voice-btn');
+    if(btn){btn.classList.add('recording');btn.textContent='⏹️';}
+  }catch(err){ alert('Microphone access denied.'); console.error(err); }
+}
+function stopRecording(){
+  if(S.mediaRecorder&&S.isRecording){
+    S.mediaRecorder.stop(); S.isRecording=false;
+    const btn=document.getElementById('voice-btn');
+    if(btn){btn.classList.remove('recording');btn.textContent='🎙️';}
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBMIT ANSWER — calls backend /api/session/answer
+   ═══════════════════════════════════════════════════════════════ */
+async function submitAnswer(){
+  // ── Guard: prevent double-submit ──
+  if(S.isProcessing) return;
+
+  const ta      = document.getElementById('resp-ta');
+  const text    = ta ? ta.value.trim() : '';
+  const isVoice = !!S.audioBlob;
+  const hasText = text.split(/\s+/).filter(Boolean).length >= 5;
+
+  if(!hasText && !isVoice){
+    // Shake the textarea to indicate it needs input
+    if(ta){ ta.style.borderColor='var(--red)'; setTimeout(()=>ta.style.borderColor='',1500); }
+    return;
+  }
+
+  if(S.isRecording) stopRecording();
+
+  // ── Lock state ──
+  S.isProcessing = true;
+  S.lastAnswer   = {text, isVoice, audioBlob: S.audioBlob};
+  if(ta) ta.disabled = true;
+  document.getElementById('sub-btn').disabled = true;
+  const vb = document.getElementById('voice-btn');
+  if(vb) vb.style.pointerEvents = 'none';
+
+  // ── Show loading overlay ──
+  showLoadingSteps();
+
+  // ── Encode voice audio ──
+  let audioB64 = null;
+  if(isVoice && S.audioBlob){
+    const buf = await S.audioBlob.arrayBuffer();
+    audioB64  = btoa(String.fromCharCode(...new Uint8Array(buf)));
+  }
+
+  const payload = {
+    session_id:   S.sessionId,
+    answer_text:  isVoice ? null : (text || null),
+    audio_base64: audioB64,
+    is_voice:     isVoice,
+  };
+
+    try {
+    setLoadStep(2);
+
+    const res  = await fetch(API_BASE+'/session/answer',{
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    setLoadStep(3);
+    await sleep(400);
+
+    if(!res.ok) throw new Error(data.detail||'Server error '+res.status);
+
+    // ── Hide loading overlay ──
+    hideLoadingSteps();
+
+    // ── Store evaluation ──
+    S.evaluations[S.currentIdx] = data.evaluation;
+    updMetrics();
+
+    // ── FIX: Buffer next question data BEFORE renderEval reads it ──
+    if(data.done || !data.next_question){
+      S._nextQData = null;
     } else {
-        let csv = "Index,Question,Answer,Mode,Time(s),Words,Score\n";
-        data.results.forEach((r,i) => {
-            csv += `${i+1},"${r.question.replace(/"/g,'""')}","${r.answer.replace(/"/g,'""')}",${r.is_voice?'Voice':'Text'},${r.response_time},${r.word_count},${r.eval.overall}\n`;
-        });
-        const blob = new Blob([csv], {type:'text/csv'});
-        downloadBlob(blob, `interview_${Date.now()}.csv`);
+      S._nextQData = {
+        question:  data.next_question,
+        rationale: data.next_rationale || '',
+        audio:     data.audio_base64   || null,
+        isProbe:   data.is_probe       || false,
+      };
     }
-}
 
-function downloadBlob(blob, name) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = name; a.click();
-    URL.revokeObjectURL(url);
-}
+    // ── Render evaluation card (now reads correct S._nextQData) ──
+    renderEval(data.evaluation);
 
-/* ==========================================================
-   DEMO DATA HELPERS
-   ========================================================== */
-function generateDemoQuestions(role) {
-    // Re-using the logic from the previous answer but trimmed for brevity
-    const bank = {
-        backend: [
-            { question: "Design a scalable rate-limiting system for a high-traffic API." },
-            { question: "Describe a production incident you debugged and how you resolved it." },
-            { question: "How do you ensure data consistency across microservices?" },
-            { question: "Explain your strategy for database optimization and indexing." },
-            { question: "How do you handle authentication, authorization, and security in backend services?" }
-        ],
-        frontend: [
-            { question: "How do you optimize a React application for performance and bundle size?" },
-            { question: "Explain your approach to accessibility (a11y) in modern web apps." },
-            { question: "How do you manage global state in a large frontend codebase?" },
-            { question: "Describe your strategy for responsive, mobile-first design." },
-            { question: "How do you ensure cross-browser compatibility without breaking performance?" }
-        ],
-        pm: [
-            { question: "Walk me through your framework for prioritizing a product roadmap." },
-            { question: "How do you gather, analyze, and act on user feedback effectively?" },
-            { question: "Describe a time you had to kill a feature or say 'no' to a stakeholder." },
-            { question: "How do you measure the success of a new product launch?" },
-            { question: "How do you balance shipping new features with managing technical debt?" }
-        ],
-        data_science: [
-            { question: "How do you handle missing or messy data in a production pipeline?" },
-            { question: "Explain a complex model you built and how you validated it." },
-            { question: "How do you communicate technical findings to non-technical stakeholders?" },
-            { question: "Describe your approach to A/B testing and experimentation." },
-            { question: "How do you ensure reproducibility and versioning in data science projects?" }
-        ],
-        devops: [
-            { question: "Design a CI/CD pipeline for a microservices application." },
-            { question: "How do you monitor, alert, and troubleshoot incidents in production?" },
-            { question: "Explain your strategy for infrastructure as code and secrets management." },
-            { question: "How do you approach container orchestration and scaling?" },
-            { question: "Describe how you implement zero-downtime deployments." }
-        ]
-    };
-    return (bank[role] || bank.backend).map(q => ({ question: q }));
-}
-
-function demoEvaluate(text) {
-    // Heuristic scoring for demo purposes
-    let score = 5 + Math.min(5, text.length / 100);
-    if(text.includes('metric') || text.includes('data') || text.includes('%')) score += 1;
-    if(text.length > 300) score += 1;
-    if(score > 10) score = 10;
-    if(score < 4) score = 4 + Math.random();
-    
-    const low = score < 6;
-    return {
-        overall: Number(score.toFixed(1)),
-        feedback: low 
-            ? "Good direction, but your answer would benefit from specific metrics or a concrete example to demonstrate impact." 
-            : "Excellent response – well structured, specific, and backed by relevant detail. Strong demonstration of expertise.",
-        strengths: low ? ["Clear attempt at the question"] : ["Specific details", "Structured thinking", "Relevant examples"],
-        weaknesses: low ? ["Add quantitative metrics", "Include a real-world example"] : []
-    };
-}
-
-/* ==========================================================
-   UTILS (Confetti)
-   ========================================================== */
-function createConfetti() {
-    const colors = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'];
-    for(let i=0; i<100; i++) {
-        const el = document.createElement('div');
-        el.className = 'confetti-piece';
-        el.style.left = Math.random() * 100 + 'vw';
-        el.style.background = colors[Math.floor(Math.random() * colors.length)];
-        el.style.animationDuration = (2 + Math.random() * 2) + 's';
-        el.style.opacity = Math.random();
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 4000);
+    // ── If interview is done, auto-trigger finish after card animates in ──
+    if(data.done){
+      setTimeout(()=>finishInterview(data.assessment), 2800);
     }
+
+  } catch(err){
+    hideLoadingSteps();
+    S.isProcessing = false;
+    if(ta){ ta.disabled = false; ta.focus(); }
+    document.getElementById('sub-btn').disabled = false;
+    const vb = document.getElementById('voice-btn');
+    if(vb) vb.style.pointerEvents = '';
+
+    document.getElementById('eval-slot').innerHTML = `
+      <div class="eval-card" style="border-top-color:var(--red)">
+        <div class="eval-title" style="color:var(--red)">⚠️ Submission Failed</div>
+        <div class="eval-sum">${err.message}</div>
+        <div class="next-row"><button class="btn btn-primary" onclick="retryAnswer()" style="padding:10px 18px;font-size:12px">↺ Retry</button></div>
+      </div>`;
+  }
+}
+
+function retryAnswer(){
+  if(!S.lastAnswer) return;
+  // Restore last answer
+  const ta = document.getElementById('resp-ta');
+  if(ta && S.lastAnswer.text){ ta.value = S.lastAnswer.text; }
+  S.isProcessing = false;
+  submitAnswer();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOADING STEPS OVERLAY
+   ═══════════════════════════════════════════════════════════════ */
+function showLoadingSteps(){
+  document.getElementById('loading-overlay').classList.add('active');
+  setLoadStep(1);
+}
+function setLoadStep(n){
+  for(let i=1;i<=3;i++){
+    const el=document.getElementById('ls-'+i);
+    const icon=document.getElementById('ls-icon-'+i);
+    el.classList.remove('ls-active','ls-done');
+    if(i<n){ el.classList.add('ls-done'); icon.textContent='✓'; }
+    else if(i===n){ el.classList.add('ls-active'); icon.innerHTML='<span class="spin">⚙️</span>'; }
+    else{ icon.textContent=['','📤','🧠','🔊'][i]; }
+  }
+}
+function hideLoadingSteps(){
+  document.getElementById('loading-overlay').classList.remove('active');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER EVALUATION
+   ═══════════════════════════════════════════════════════════════ */
+function renderEval(ev){
+  const slot=document.getElementById('eval-slot');
+  const scCol = scC(ev.overall*10);
+  const strengths  = ev.strengths||[];
+  const weaknesses = ev.weaknesses||[];
+  const probe = ev.probe && typeof ev.probe==='string' && ev.probe!=='null' && ev.probe!=='';
+
+  const dims = buildDimensions(ev);
+  const hasNext = !!S._nextQData;
+
+  slot.style.opacity='0'; slot.style.transform='translateY(18px)'; slot.style.transition='none';
+
+  slot.innerHTML=`
+    <div class="eval-card">
+      <div class="eval-head">
+        <div>
+          <div class="eval-title">AI Evaluation</div>
+          <div class="eval-meta">Question ${S.currentIdx+1} · Dynamic Interview</div>
+        </div>
+        <div>
+          <div class="eval-sc-n" style="color:${scCol}">${ev.overall}</div>
+          <div class="eval-sc-d">/ 10</div>
+        </div>
+      </div>
+      ${dims}
+      <div class="eval-sum">${ev.feedback||''}</div>
+      <div class="eval-tags">
+        ${strengths.map(s=>`<span class="etag etag-g">✓ ${s}</span>`).join('')}
+        ${weaknesses.map(w=>`<span class="etag etag-a">△ ${w}</span>`).join('')}
+      </div>
+      ${probe?`<div class="eval-sum" style="border-left:3px solid var(--amber);margin-top:8px">🔍 <strong>Follow-up:</strong> ${ev.probe}</div>`:''}
+      <div class="next-row">
+        ${hasNext
+          ? `<button class="btn btn-primary" onclick="loadNextQ()" style="padding:10px 18px;font-size:12px">Next Question →</button>`
+          : `<button class="btn btn-primary btn-finish" onclick="finishInterview()" style="padding:10px 18px;font-size:12px">🏁 Finish Interview</button>`
+        }
+      </div>
+    </div>`;
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    slot.style.transition='opacity 0.42s var(--ease),transform 0.42s var(--ease)';
+    slot.style.opacity='1'; slot.style.transform='translateY(0)';
+  }));
+  setTimeout(()=>slot.scrollIntoView({behavior:'smooth',block:'nearest'}),220);
+}
+
+function buildDimensions(ev){
+  if(ev.dimensions){
+    const colors={correctness:'#1fc874',relevance:'#4080ff',clarity:'#9d6fff',depth:'#f0a020'};
+    return '<div class="dim-list">'+Object.entries(ev.dimensions).map(([k,v])=>`
+      <div><div class="dim-head"><div class="dim-nm">${k.charAt(0).toUpperCase()+k.slice(1)}</div>
+        <div class="dim-sc" style="color:${colors[k]||'var(--blue)'}">${v.score||'—'}/10</div></div>
+        <div class="dim-track"><div class="dim-fill" style="width:${(v.score||0)*10}%;background:${colors[k]||'var(--blue)'}"></div></div>
+        <div class="dim-fb">${v.feedback||''}</div></div>`).join('')+'</div>';
+  }
+  const s=ev.overall||5;
+  const j=()=>Math.max(1,Math.min(10,s+Math.round((Math.random()-0.5)*4)));
+  const ds=[{n:'Correctness',c:'#1fc874'},{n:'Relevance',c:'#4080ff'},{n:'Clarity',c:'#9d6fff'},{n:'Depth',c:'#f0a020'}];
+  return '<div class="dim-list">'+ds.map(d=>`
+    <div><div class="dim-head"><div class="dim-nm">${d.n}</div><div class="dim-sc" style="color:${d.c}">${j()}/10</div></div>
+    <div class="dim-track"><div class="dim-fill" style="width:${j()*10}%;background:${d.c}"></div></div></div>`).join('')+'</div>';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NEXT QUESTION — loads buffered question from last API response
+   ═══════════════════════════════════════════════════════════════ */
+function loadNextQ(){
+  if(!S._nextQData){
+    // No more questions — finish
+    finishInterview();
+    return;
+  }
+
+  const next = S._nextQData;
+  S._nextQData = null;
+
+  // Advance index and add question
+  S.currentIdx++;
+  S.questions.push({question:next.question, rationale:next.rationale});
+
+  // Clear eval slot and render
+  document.getElementById('eval-slot').innerHTML = '';
+  renderQ(next.audio);
+  refreshSide();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FINISH INTERVIEW → GENERATE REPORT
+   ═══════════════════════════════════════════════════════════════ */
+async function finishInterview(assessment){
+  goScene('loading');
+  document.getElementById('prog-fill').style.width='92%';
+
+  if(assessment){
+    S.report = assessment;
+    await sleep(600);
+    renderReport(assessment);
+    goScene('report');
+    return;
+  }
+
+  try{
+    const res  = await fetch(API_BASE+'/session/'+S.sessionId+'/results');
+    const data = await res.json();
+    S.report = data;
+    await sleep(600);
+    renderReport(data);
+    goScene('report');
+  }catch(err){
+    await sleep(600);
+    renderReport(null);
+    goScene('report');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPORT
+   ═══════════════════════════════════════════════════════════════ */
+function renderReport(r){
+  const scored = S.evaluations.filter(Boolean);
+  const avg    = scored.length?(scored.reduce((s,e)=>s+e.overall,0)/scored.length):0;
+  const avg100 = Math.round(avg*10);
+  const deg    = Math.round((avg100/100)*360);
+  const suit   = avg100>=80?'Strong Fit':avg100>=65?'Good Fit':avg100>=50?'Moderate Fit':'Weak Fit';
+  const suitCls= avg100>=80?'ss':avg100>=65?'sg':avg100>=50?'sf':'sf';
+  const scLbl  = avg100>=85?'Exceptional':avg100>=70?'Proficient':avg100>=55?'Developing':'Needs Work';
+
+  // Merge strengths/gaps from all evaluations
+  const strengths = [...new Set(scored.flatMap(e=>e.strengths||[]))].slice(0,4);
+  const gaps      = [...new Set(scored.flatMap(e=>e.weaknesses||[]))].slice(0,3);
+  const summary   = r?.summary||{};
+  const recommendation = r?.summary?.recommendation||'';
+
+  document.getElementById('rep-inner').innerHTML=`
+    <div class="rep-hero">
+      <div>
+        <div class="rep-eye">Interview Complete · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
+        <div class="rep-title">Assessment Report</div>
+        <div class="rep-meta"><strong>${S.name}</strong> · ${S.roleName} · ${S.exp} years<br>${scored.length} questions evaluated · Avg: ${avg.toFixed(1)}/10</div>
+        <div class="suit-badge ${suitCls}">${suit}</div>
+      </div>
+      <div class="sc-circle" style="--deg:${deg}deg">
+        <div class="sc-in"><div class="sc-n">${avg100}</div><div class="sc-l">${scLbl}</div></div>
+      </div>
+    </div>
+    <div class="rep-grid">
+      <div class="r-card r-card-full">
+        <div class="r-card-title">Overview</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:12px">
+          <div class="met-box"><div class="met-val" style="color:${scC(avg100)}">${avg100}</div><div class="met-lbl">Overall Score</div></div>
+          <div class="met-box"><div class="met-val">${scored.length}</div><div class="met-lbl">Answered</div></div>
+          <div class="met-box"><div class="met-val" style="color:var(--blue)">${S.questions.length}</div><div class="met-lbl">Total Questions</div></div>
+          <div class="met-box"><div class="met-val" style="font-size:14px;color:var(--purple)">${suit}</div><div class="met-lbl">Verdict</div></div>
+        </div>
+      </div>
+      <div class="r-card">
+        <div class="r-card-title" style="color:var(--green)">↑ Strengths</div>
+        ${strengths.map((s,i)=>`<div style="font-size:12px;padding:6px 0;${i<strengths.length-1?'border-bottom:1px solid var(--border)':''}">✓ ${s}</div>`).join('')||'<div style="font-size:12px;color:var(--text3)">No strengths recorded</div>'}
+      </div>
+      <div class="r-card">
+        <div class="r-card-title" style="color:var(--amber)">↗ Development Areas</div>
+        ${gaps.map((g,i)=>`<div style="font-size:12px;padding:6px 0;${i<gaps.length-1?'border-bottom:1px solid var(--border)':''}">△ ${g}</div>`).join('')||'<div style="font-size:12px;color:var(--text3)">No gaps recorded</div>'}
+      </div>
+      <div class="r-card r-card-full">
+        <div class="r-card-title">Question-by-Question</div>
+        <div class="qb-list">
+          ${S.questions.map((q,i)=>{
+            const e=S.evaluations[i]; if(!e) return '';
+            const t=e.overall>=7?'h':e.overall>=5?'m':'l';
+            return `<div class="qb-item ${t}">
+              <div class="qb-row"><div class="qb-q"><span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Q${i+1}</span><br>${q.question}</div>
+                <div class="qb-sc ${t}">${e.overall}</div></div>
+              <div class="qb-fb">${e.feedback||''}</div></div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    ${recommendation?`<div class="rec-box"><div class="rec-title">Recommendation</div><div class="rec-text">${recommendation}</div></div>`:''}
+    <div class="rep-actions">
+      <button class="btn btn-primary" onclick="restartApp()">Start New Interview →</button>
+      <button class="btn btn-ghost" onclick="window.print()">Print Report</button>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESTART
+   ═══════════════════════════════════════════════════════════════ */
+function restartApp(){
+  Object.assign(S,{name:'',exp:'3-5',file:null,roleId:null,roleName:'',sessionId:null,
+    questions:[],evaluations:[],currentIdx:0,isProcessing:false,lastAnswer:null,
+    audioBlob:null,report:null,_nextQData:null,isRecording:false});
+  document.getElementById('cand-name').value='';
+  document.getElementById('jd-input').value='';
+  document.getElementById('btn-role').disabled=true;
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  removeFile();
+  goScene('upload');
 }
 </script>
 </body>
