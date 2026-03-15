@@ -1,14 +1,4 @@
-"""
-Enterprise AI Interview Agent v4.0 (Groq + Advanced Features)
-UPGRADES IMPLEMENTED:
-- ✅ TTS: AI speaks questions aloud (gTTS + pygame)
-- ✅ Groq Whisper: Ultra-fast, accurate voice transcription
-- ✅ Dynamic Branching: Probes low-score answers (<6/10)
-- ✅ Golden Answers: Anti-hallucination grading benchmark
-- ✅ SQLite Database: Persistent interview storage
-- ✅ Bias Mitigation: Anonymizes PII from resume
-Requirements: pip install groq pypdf SpeechRecognition pyaudio pandas openpyxl numpy gtts pygame pydub
-"""
+
 
 import os
 import sys
